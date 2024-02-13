@@ -1,0 +1,63 @@
+{% extends "check/base.html" %}
+{% load static %}
+{% block title %}OBZOR{% endblock title %}
+{% block content %}
+    <div class="container-fluid text-white text-center">
+        <header class="mt-5">
+            <div class="row">
+            <h1 class="display-1">OBZOR</h1></div>
+            <p class="col-md-4 m-auto mt-3">
+                Инструмент для оперативного анализа индикаторов компрометации в рамках расследования инцидентов информационной безопасности.
+            </p>
+        </header>
+        <main class="mt-5">
+            <div class="row justify-content-center align-items-start gap-5">
+                <div class="col-md-3">
+                    <h4>Поддерживаемые типы индикаторов:</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item text-bg-dark">IPv4</li>
+                        <li class="list-group-item text-bg-dark">Домены</li>
+                        <li class="list-group-item text-bg-dark">Хеш-суммы (SHA256, SHA1, MD5)</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h4>Как это работает:</h4>
+                    <ol class="list-group list-group-numbered list-group-flush text-start">
+                        <li class="list-group-item d-flex justify-content-between align-items-start text-bg-dark">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Ввод индикатора компрометации</div>
+                                На главной странице введите интересующий вас индикатор из списка поддерживаемых.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start text-bg-dark">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Получение результатов</div>
+                                OBZOR автоматически направляет запросы к различным открытым источникам, агрегируя важную информацию для вашего анализа.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start text-bg-dark">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Анализ результатов</div>
+                                Просматривайте и анализируйте полученные данные на новой странице, обеспечивая более глубокое понимание инцидента.
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-md-3">
+                    <h4>Поддерживаемые источники:</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item text-bg-dark">VirusTotal</li>
+                        <li class="list-group-item text-bg-dark">AlienVault OTX</li>
+                    </ul>
+                </div>
+            </div>
+            <blockquote class="blockquote mt-5 fs-6">
+                <p>
+                    Наша цель – предоставить аналитикам SOC мощный инструмент для оперативного анализа важных индикаторов компрометации в режиме реального времени.
+                    <br>
+                    Используйте OBZOR для <b>эффективного</b> расследования инцидентов информационной безопасности.
+                </p>
+            </blockquote>
+        </main>
+    </div>
+{% endblock content %}

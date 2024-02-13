@@ -1,0 +1,37 @@
+body {
+    padding-top: 60px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+.form-control {
+    background-color:rgba(0, 0, 0, 0);
+    margin-left: 0;
+    /* Убирает подсветку у поля ввода при фокусе */
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+/* Класс для слишком длинных значений ячеек таблицы (разрывает слова) */
+.td_value {
+    overflow-wrap: break-word; /* Перенос слов при необходимости */
+    white-space: normal;   /* Обычное отображение текста внутри ячейки */
+    word-break: break-all;
+}
+
+/* 
+Почему то для этих наследников input-group margin-left высчитывается по формуле calc(var(--bs-border-width) * -1) из-за чего срезается 1 пиксель правой границы
+Пофиксить удалось только захардкодив margin-left
+*/
+.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    margin-left: 1px;
+}
+
+/*
+У navbar-brand есть margin-right, но нет margin-left
+Добавил равный margin-right
+*/
+.navbar-brand {
+    margin-left: var(--bs-navbar-brand-margin-end);
+}

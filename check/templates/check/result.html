@@ -1,0 +1,178 @@
+{% extends "check/base.html" %}
+{% block title %}OBZOR - {{ indicator_type }} - {{ indicator }}{% endblock title %}
+{% block content %}
+    <div class="container-fluid mt-5">
+        {% if indicator_type == 'not_ioc' %}
+            <div class="text-white text-center">
+                <h3>Некорректный индикатор</h3>
+                <p>
+                    На данный момент <b>OBZOR</b> поддерживает следующие виды индикаторов: <b>IPv4</b>-адреса, <b>домены</b> и <b>хеш-суммы</b> (SHA256, SHA1, MD5).
+                    <br>
+                    Перепроверьте ввод и попробуйте снова.
+                </p>
+            </div>
+        {% else %}
+            <div class="row">
+                <!-- Блоки с информацией -->
+                <div class="col-md-4">
+                    <div class="card text-bg-secondary mb-3">
+                        <div class="card-header">
+                            <ul class="nav nav-pills card-header-pills">
+                                <li class="nav-item">
+                                    {% if indicator_type == 'ip' %}
+                                        <a class="nav-link active"
+                                           href="https://www.virustotal.com/gui/ip-address/{{ indicator }}"
+                                           target="_blank">VirusTotal</a>
+                                    {% elif indicator_type == 'domain' %}
+                                        <a class="nav-link active"
+                                           href="https://www.virustotal.com/gui/domain/{{ indicator }}"
+                                           target="_blank">VirusTotal</a>
+                                    {% elif indicator_type == 'hash' %}
+                                        <a class="nav-link active"
+                                           href="https://www.virustotal.com/gui/file/{{ indicator }}"
+                                           target="_blank">VirusTotal</a>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if vt_result %}
+                                {% if indicator_type == 'ip' %}
+                                    <!-- Карточка VT для IP -->
+                                    <table class="table table-hover table-bordered mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Показатель выявления вредоносов:</td>
+                                                <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Репутация:</td>
+                                                <td>{{ vt_result.reputation }}</td>
+                                            </tr>
+                                            {% if vt_result.tags %}
+                                                <tr>
+                                                    <td>Теги:</td>
+                                                    <td>{{ vt_result.tags }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Дата последнего анализа:</td>
+                                                <td>{{ vt_result.last_analysis_date }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Дата изменения информации об IP:</td>
+                                                <td>{{ vt_result.last_modification_date }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                {% elif indicator_type == 'domain' %}
+                                    <!-- Карточка VT для домена -->
+                                    <table class="table table-hover table-bordered mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Показатель выявления вредоносов:</td>
+                                                <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Репутация:</td>
+                                                <td>{{ vt_result.reputation }}</td>
+                                            </tr>
+                                            {% if vt_result.tags %}
+                                                <tr>
+                                                    <td>Теги:</td>
+                                                    <td>{{ vt_result.tags }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Регистратор:</td>
+                                                <td>{{ vt_result.registrar }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Дата последнего анализа:</td>
+                                                <td>{{ vt_result.last_analysis_date }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Дата изменения информации о домене:</td>
+                                                <td>{{ vt_result.last_modification_date }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                {% elif indicator_type == 'hash' %}
+                                    <!-- Карточка VT для хеша -->
+                                    <table class="table table-hover table-bordered mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Показатель выявления вредоносов:</td>
+                                                <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Репутация:</td>
+                                                <td>{{ vt_result.reputation }}</td>
+                                            </tr>
+                                            {% if vt_result.tags %}
+                                                <tr>
+                                                    <td>Теги:</td>
+                                                    <td>{{ vt_result.tags }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Расширение:</td>
+                                                <td>{{ vt_result.type_extension }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Описание типа:</td>
+                                                <td>{{ vt_result.type_description }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Теги типа:</td>
+                                                <td>{{ vt_result.type_tags }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Magic:</td>
+                                                <td>{{ vt_result.magic }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Все имена файла:</td>
+                                                <td>{{ vt_result.names }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Имя файла:</td>
+                                                <td>{{ vt_result.meaningful_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Размер файла:</td>
+                                                <td>{{ vt_result.size }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>MD5:</td>
+                                                <td>{{ vt_result.md5 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>SHA1:</td>
+                                                <td>{{ vt_result.sha1 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>SHA256:</td>
+                                                <td class="td_value">{{ vt_result.sha256 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Дата последнего анализа:</td>
+                                                <td>{{ vt_result.last_analysis_date }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Дата изменения информации о файле:</td>
+                                                <td>{{ vt_result.last_modification_date }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                {% endif %}
+                            {% else %}
+                                <p class="card-text">Данные отсутствуют</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}
