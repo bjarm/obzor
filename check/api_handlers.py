@@ -5,8 +5,8 @@ from check.ioc import Indicator, IndicatorType
 from django.conf import settings
 
 
-def vt_handle(indicator):
-    
+def virustotal_handle(indicator):
+
     HEADERS = {
         "accept": "application/json",
         "x-apikey": settings.VT_API_KEY
@@ -17,20 +17,12 @@ def vt_handle(indicator):
     if indicator.type == IndicatorType.ip:
         url = f"https://www.virustotal.com/api/v3/ip_addresses/{
             indicator.as_a_string}"
-        # Docs — https://docs.virustotal.com/reference/ip-object
     elif indicator.type == IndicatorType.domain:
         url = f"https://www.virustotal.com/api/v3/domains/{
             indicator.as_a_string}"
-        # Docs — https://docs.virustotal.com/reference/domains-object
     elif indicator.type == IndicatorType.hash:
         url = f"https://www.virustotal.com/api/v3/files/{
             indicator.as_a_string}"
-        # Docs — https://docs.virustotal.com/reference/files
-
-    # Test IOCs
-    # 104.140.244.186
-    # pool.xmrpool.me
-    # 01b6057fd469abe78b01a971272608a1f9e078aa3d634e753dc6747800866836
 
     response = requests.get(url, headers=HEADERS)
     response_decoded = json.loads(response.text)
@@ -50,7 +42,7 @@ def vt_handle(indicator):
     }
 
     if indicator.type == IndicatorType.ip:
-        pass  # на случай, если надо будет расширить обработчик для IP
+        pass
     elif indicator.type == IndicatorType.domain:
         result.update({
             'registrar': attributes.get('registrar')

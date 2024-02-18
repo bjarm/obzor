@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse
-from check.handlers.virustotal_handler import vt_handle
+from check.api_handlers import virustotal_handle
 from check.ioc import IndicatorType, Indicator
 
 
@@ -18,9 +18,7 @@ def search(request):
     }
 
     if indicator.type != IndicatorType.not_ioc:
-        vt_result = vt_handle(indicator)
-
-        # далее другие хэндлеры
+        vt_result = virustotal_handle(indicator)
 
         result.update({
             'vt_result': vt_result
