@@ -1,5 +1,7 @@
 {% extends "check/base.html" %}
-{% block title %}OBZOR - {{ indicator_type }} - {{ indicator }}{% endblock title %}
+{% block title %}
+    OBZOR - {{ indicator_type }} - {{ indicator }}
+{% endblock title %}
 {% block content %}
     <div class="container-fluid mt-5">
         {% if indicator_type == 'not_ioc' %}
@@ -14,6 +16,7 @@
         {% else %}
             <div class="row">
                 <!-- Блоки с информацией -->
+                <!-- Карточка VT для IP -->
                 <div class="col-md-4">
                     <div class="card text-bg-secondary mb-3">
                         <div class="card-header">
@@ -38,7 +41,6 @@
                         <div class="card-body p-0">
                             {% if vt_result %}
                                 {% if indicator_type == 'ip' %}
-                                    <!-- Карточка VT для IP -->
                                     <table class="table table-hover table-bordered mb-0">
                                         <tbody>
                                             <tr>
@@ -172,6 +174,92 @@
                         </div>
                     </div>
                 </div>
+                {% if indicator_type == 'ip' %}
+                    <!-- Карточка AbuseIPDB -->
+                    <div class="col-md-4">
+                        <div class="card text-bg-secondary mb-3">
+                            <div class="card-header">
+                                <ul class="nav nav-pills card-header-pills">
+                                    <li class="nav-item">
+                                        <a class="nav-link active"
+                                           href="https://www.abuseipdb.com/check/{{ indicator }}"
+                                           target="_blank">AbuseIPDB</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if abuseipdb_result %}
+                                    <table class="table table-hover table-bordered mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Рейтинг AbuseIPDB:</td>
+                                                <td>{{ abuseipdb_result.abuse_confidence_score }}%</td>
+                                            </tr>
+                                            {% if abuseipdb_result.categories %}
+                                                <tr>
+                                                    <td>Категории:</td>
+                                                    <td>{{ abuseipdb_result.categories }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if abuseipdb_result.total_reports %}
+                                                <tr>
+                                                    <td>Количество репортов:</td>
+                                                    <td>{{ abuseipdb_result.total_reports }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if abuseipdb_result.last_reported_at %}
+                                                <tr>
+                                                    <td>Дата последнего репорта:</td>
+                                                    <td>{{ abuseipdb_result.last_reported_at }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Присутствует в белом списке AbuseIPDB:</td>
+                                                <td>{{ abuseipdb_result.is_whitelisted }}</td>
+                                            </tr>
+                                            {% if abuseipdb_result.isp %}
+                                                <tr>
+                                                    <td>ISP:</td>
+                                                    <td>{{ abuseipdb_result.isp }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if abuseipdb_result.usage_type %}
+                                                <tr>
+                                                    <td>Тип использования:</td>
+                                                    <td>{{ abuseipdb_result.usage_type }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if abuseipdb_result.hostnames %}
+                                                <tr>
+                                                    <td>Названия хоста:</td>
+                                                    <td>{{ abuseipdb_result.hostnames }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if abuseipdb_result.domain %}
+                                                <tr>
+                                                    <td>Домен:</td>
+                                                    <td>{{ abuseipdb_result.domain }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Страна:</td>
+                                                <td>{{ abuseipdb_result.country_name }}</td>
+                                            </tr>
+                                            {% if abuseipdb_result.is_tor %}
+                                                <tr>
+                                                    <td>Принадлежит сети TOR:</td>
+                                                    <td>{{ abuseipdb_result.is_tor }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p class="card-text">Данные отсутствуют</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
     </div>
