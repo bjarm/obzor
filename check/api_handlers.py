@@ -18,7 +18,7 @@ def virustotal_handle(indicator):
     if indicator.type == IndicatorType.ip:
         url = f"https://www.virustotal.com/api/v3/ip_addresses/{
             indicator.as_a_string}"
-    elif indicator.type == IndicatorType.domain:
+    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
         url = f"https://www.virustotal.com/api/v3/domains/{
             indicator.as_a_string}"
     elif indicator.type == IndicatorType.hash:
@@ -44,7 +44,7 @@ def virustotal_handle(indicator):
 
     if indicator.type == IndicatorType.ip:
         pass
-    elif indicator.type == IndicatorType.domain:
+    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
         result.update({
             'registrar': attributes.get('registrar')
         })
@@ -138,8 +138,10 @@ def alienvault_handle(indicator):
     
     if indicator.type == IndicatorType.ip:
         general_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.domain:
+    elif indicator.type == IndicatorType.hostname:
         general_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.domain:
+        general_url = f"https://otx.alienvault.com/api/v1/indicators/domain/{indicator.as_a_string}/general/"
     elif indicator.type == IndicatorType.hash:
         general_url = f"https://otx.alienvault.com/api/v1/indicators/file/{indicator.as_a_string}/general/"
 
@@ -188,13 +190,15 @@ def alienvault_handle(indicator):
     }
 
 
-    if indicator.type in [IndicatorType.ip, IndicatorType.domain]:
+    if indicator.type in [IndicatorType.ip, IndicatorType.hostname, IndicatorType.domain]:
         passive_dns_url = ''
 
         if indicator.type == IndicatorType.ip:
             passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/passive_dns/"
-        elif indicator.type == IndicatorType.domain:
+        elif indicator.type == IndicatorType.hostname:
             passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/passive_dns/"
+        elif indicator.type == IndicatorType.domain:
+            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/domain/{indicator.as_a_string}/passive_dns/"
 
         passive_dns_response = requests.get(passive_dns_url, headers=HEADERS)
         passive_dns_response_decoded = json.loads(passive_dns_response.text)
@@ -212,9 +216,22 @@ def alienvault_handle(indicator):
                 'passive_dns_count': passive_dns_response_decoded.get('count'),
                 'last_passive_dns': last_passive_dns
             })
+        elif indicator.type == IndicatorType.hostname:
+            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+                last_passive_dns.append({
+                    'address': passive_dns.get('address'),
+                    'record_type': passive_dns.get('record_type')
+                })
+            
+            result.update({
+                'domain': general_response_decoded.get('domain'),
+                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'last_passive_dns': last_passive_dns
+            })
         elif indicator.type == IndicatorType.domain:
             for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
                 last_passive_dns.append({
+                    'hostname': passive_dns.get('hostname'),
                     'address': passive_dns.get('address'),
                     'record_type': passive_dns.get('record_type')
                 })

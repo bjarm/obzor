@@ -11,7 +11,8 @@ class Indicator:
 
 
 class IndicatorType(enum.Enum):
-    ip = 4
+    ip = 5
+    hostname = 4
     domain = 3
     hash = 2
     not_ioc = 1
@@ -20,6 +21,8 @@ class IndicatorType(enum.Enum):
 def typify(indicator):
     if is_valid_ip(indicator):
         return IndicatorType.ip
+    elif is_valid_hostname(indicator):
+        return IndicatorType.hostname
     elif is_valid_domain(indicator):
         return IndicatorType.domain
     elif is_valid_hash(indicator):
@@ -38,7 +41,12 @@ def is_valid_ip(ip_str):
 
 def is_valid_domain(domain_str):
     extracted_domain = tldextract.extract(domain_str)
-    return bool(extracted_domain.domain and extracted_domain.suffix and extracted_domain.fqdn == domain_str)
+    return bool(extracted_domain.domain and extracted_domain.suffix and extracted_domain.fqdn == domain_str and not extracted_domain.subdomain)
+
+
+def is_valid_hostname(hostname_str):
+    extracted_hostname = tldextract.extract(hostname_str)
+    return bool(extracted_hostname.domain and extracted_hostname.suffix and extracted_hostname.fqdn == hostname_str and extracted_hostname.subdomain)
 
 
 def is_valid_hash(hash_str):

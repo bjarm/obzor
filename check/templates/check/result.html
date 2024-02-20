@@ -26,7 +26,7 @@
                                         <a class="nav-link active"
                                            href="https://www.virustotal.com/gui/ip-address/{{ indicator }}"
                                            target="_blank">VirusTotal</a>
-                                    {% elif indicator_type == 'domain' %}
+                                    {% elif indicator_type == 'domain' or indicator_type == 'hostname' %}
                                         <a class="nav-link active"
                                            href="https://www.virustotal.com/gui/domain/{{ indicator }}"
                                            target="_blank">VirusTotal</a>
@@ -67,7 +67,7 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                {% elif indicator_type == 'domain' %}
+                                {% elif indicator_type == 'domain' or indicator_type == 'hostname' %}
                                     <!-- Карточка VT для домена -->
                                     <table class="table table-hover table-bordered mb-0">
                                         <tbody>
@@ -184,9 +184,13 @@
                                         <a class="nav-link active"
                                            href="https://otx.alienvault.com/indicator/ip/{{ indicator }}"
                                            target="_blank">AlienVault OTX</a>
-                                    {% elif indicator_type == 'domain' %}
+                                    {% elif indicator_type == 'hostname' %}
                                         <a class="nav-link active"
                                            href="https://otx.alienvault.com/indicator/hostname/{{ indicator }}"
+                                           target="_blank">AlienVault OTX</a>
+                                    {% elif indicator_type == 'domain' %}
+                                        <a class="nav-link active"
+                                           href="https://otx.alienvault.com/indicator/domain/{{ indicator }}"
                                            target="_blank">AlienVault OTX</a>
                                     {% elif indicator_type == 'hash' %}
                                         <a class="nav-link active"
@@ -245,6 +249,56 @@
                                             {% endif %}
                                         </tbody>
                                     </table>
+                                {% elif indicator_type == 'hostname' %}
+                                    <table class="table table-hover table-bordered mb-0">
+                                        <tbody>
+                                            {% if alienvault_result.tags %}
+                                                <tr>
+                                                    <td>Теги:</td>
+                                                    <td>{{ alienvault_result.tags }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if alienvault_result.adversaries %}
+                                                <tr>
+                                                    <td>Субъекты угрозы:</td>
+                                                    <td>{{ alienvault_result.adversaries }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if alienvault_result.malware_families %}
+                                                <tr>
+                                                    <td>Семейства ВПО:</td>
+                                                    <td>{{ alienvault_result.malware_families }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if alienvault_result.industries %}
+                                                <tr>
+                                                    <td>Цели:</td>
+                                                    <td>{{ alienvault_result.industries }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td>Количество DNS-записей:</td>
+                                                <td>{{ alienvault_result.passive_dns_count }}</td>
+                                            </tr>
+                                            {% if alienvault_result.last_passive_dns %}
+                                                <tr>
+                                                    <td>Ниаболее актуальные DNS-записи:</td>
+                                                    <td class="p-0">
+                                                        <table class="table table-hover mb-0">
+                                                            <tbody>
+                                                            {% for passive_dns in alienvault_result.last_passive_dns %}
+                                                                <tr>
+                                                                    <td>{{ passive_dns.record_type }}</td>
+                                                                    <td class="border-start">{{ passive_dns.address }}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
                                 {% elif indicator_type == 'domain' %}
                                     <table class="table table-hover table-bordered mb-0">
                                         <tbody>
@@ -284,7 +338,8 @@
                                                             <tbody>
                                                             {% for passive_dns in alienvault_result.last_passive_dns %}
                                                                 <tr>
-                                                                    <td>{{ passive_dns.record_type }}-запись:</td>
+                                                                    <td>{{ passive_dns.hostname }}</td>
+                                                                    <td class="border-start">{{ passive_dns.record_type }}</td>
                                                                     <td class="border-start">{{ passive_dns.address }}</td>
                                                                 </tr>
                                                             {% endfor %}
