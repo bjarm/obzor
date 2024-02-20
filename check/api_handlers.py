@@ -125,3 +125,122 @@ def abuseipdb_handle(indicator):
     }
 
     return result
+
+
+def alienvault_handle(indicator):
+    
+    HEADERS = {
+        "accept": "application/json",
+        "x-otx-api-key": settings.OTX_API_KEY
+    }
+
+    general_url = ""
+    
+    if indicator.type == IndicatorType.ip:
+        general_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.domain:
+        general_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.hash:
+        general_url = f"https://otx.alienvault.com/api/v1/indicators/file/{indicator.as_a_string}/general/"
+
+    general_response = requests.get(general_url, headers=HEADERS)
+    general_response_decoded = json.loads(general_response.text)
+
+    # Collecting pulses data
+    pulse_info = general_response_decoded.get('pulse_info')
+
+    # Get pulses from response
+    pulses = pulse_info.get('pulses')
+
+    tags = []
+    adversaries = []
+    malware_families = []
+    industries = []
+
+    if pulses:
+        # Collecting unique tags from pulses that have more than 1000 subscribers (criterion of relevancy idk)
+        for pulse in pulses:
+            for tag in pulse.get('tags', []):
+                if tag not in tags and pulse.get('subscriber_count', 0) >= 1000:
+                    tags.append(tag)
+        
+        alienvault_related = pulse_info.get('related').get('alienvault')
+        other_related = pulse_info.get('related').get('other')
+
+        # Collecting unique adversaries
+        for adversary in alienvault_related.get('adversary') + other_related.get('adversary'):
+            if adversary not in adversaries:
+                adversaries.append(adversary)
+        # Collecting unique malware_families
+        for malware_family in alienvault_related.get('malware_families') + other_related.get('malware_families'):
+            if malware_family not in malware_families:
+                malware_families.append(malware_family)
+        # Collecting unique industries
+        for industry in alienvault_related.get('industries') + other_related.get('industries'):
+            if industry not in industries:
+                industries.append(industry)
+
+    result = {
+        'tags': tags,
+        'adversaries': adversaries,
+        'malware_families': malware_families,
+        'industries': industries
+    }
+
+
+    if indicator.type in [IndicatorType.ip, IndicatorType.domain]:
+        passive_dns_url = ''
+
+        if indicator.type == IndicatorType.ip:
+            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/passive_dns/"
+        elif indicator.type == IndicatorType.domain:
+            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/passive_dns/"
+
+        passive_dns_response = requests.get(passive_dns_url, headers=HEADERS)
+        passive_dns_response_decoded = json.loads(passive_dns_response.text)
+
+        last_passive_dns = []
+        
+        if indicator.type == IndicatorType.ip:
+            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+                last_passive_dns.append(passive_dns.get('hostname'))
+            
+            result.update({
+                'asn': general_response_decoded.get('asn'),
+                'country_name': general_response_decoded.get('country_name'),
+                'city': general_response_decoded.get('city'),
+                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'last_passive_dns': last_passive_dns
+            })
+        elif indicator.type == IndicatorType.domain:
+            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+                last_passive_dns.append({
+                    'address': passive_dns.get('address'),
+                    'record_type': passive_dns.get('record_type')
+                })
+            
+            result.update({
+                'domain': general_response_decoded.get('domain'),
+                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'last_passive_dns': last_passive_dns
+            })
+    elif indicator.type == IndicatorType.hash:
+        analysis_url = f"https://otx.alienvault.com/api/v1/indicators/file/{indicator.as_a_string}/analysis/"
+        
+        analysis_response = requests.get(analysis_url, headers=HEADERS)
+        analysis_response_decoded = json.loads(analysis_response.text)
+
+        analysis_info_results = analysis_response_decoded.get('analysis').get('info').get('results')
+        analysis_info_plugins_metaextract_results = analysis_response_decoded.get('analysis').get('plugins').get('metaextract').get('results')
+
+        result.update({
+            'md5': analysis_info_results.get('md5'),
+            'sha1': analysis_info_results.get('sha1'),
+            'sha256': analysis_info_results.get('sha256'),
+            'filesize': analysis_info_results.get('filesize'),
+            'file_type': analysis_info_results.get('file_type'),
+            'metaextract_urls': analysis_info_plugins_metaextract_results.get('urls'),
+            'metaextract_ips': analysis_info_plugins_metaextract_results.get('ips')
+        })
+
+    return result

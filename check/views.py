@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse
-from check.api_handlers import virustotal_handle, abuseipdb_handle
+from check.api_handlers import virustotal_handle, abuseipdb_handle, alienvault_handle
 from check.ioc import IndicatorType, Indicator
 
 
@@ -19,9 +19,11 @@ def search(request):
 
     if indicator.type != IndicatorType.not_ioc:
         vt_result = virustotal_handle(indicator)
+        alienvault_result = alienvault_handle(indicator)
 
         result.update({
-            'vt_result': vt_result
+            'vt_result': vt_result,
+            'alienvault_result': alienvault_result
         })
 
         if indicator.type == IndicatorType.ip:
