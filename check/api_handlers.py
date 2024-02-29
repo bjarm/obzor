@@ -1,50 +1,44 @@
-import requests
-import json
 import tomllib
+from aiohttp import ClientSession
 from datetime import datetime, timezone
 from check.ioc import Indicator, IndicatorType
 from django.conf import settings
 
 
-def virustotal_handle(indicator):
+async def fetch(session, url, params=None):
+    async with session.get(url, params=params) as response:
+        return await response.json()
 
-    HEADERS = {
+
+async def vt_handle(indicator):
+
+    if indicator.type == IndicatorType.ip:
+        url = f"/api/v3/ip_addresses/{indicator.as_a_string}"
+    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
+        url = f"/api/v3/domains/{indicator.as_a_string}"
+    elif indicator.type == IndicatorType.hash:
+        url = f"/api/v3/files/{indicator.as_a_string}"
+
+    headers = {
         "accept": "application/json",
         "x-apikey": settings.VT_API_KEY
     }
 
-    url = ""
+    async with ClientSession(base_url="https://www.virustotal.com", headers=headers) as session:
+        response = await fetch(session, url)
 
-    if indicator.type == IndicatorType.ip:
-        url = f"https://www.virustotal.com/api/v3/ip_addresses/{
-            indicator.as_a_string}"
-    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
-        url = f"https://www.virustotal.com/api/v3/domains/{
-            indicator.as_a_string}"
-    elif indicator.type == IndicatorType.hash:
-        url = f"https://www.virustotal.com/api/v3/files/{
-            indicator.as_a_string}"
-
-    response = requests.get(url, headers=HEADERS)
-    response_decoded = json.loads(response.text)
-    attributes = response_decoded.get('data').get('attributes')
+    attributes = response.get('data').get('attributes')
 
     result = {
         'last_analysis_date': datetime.utcfromtimestamp(attributes.get('last_analysis_date')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z"),
         'engine_malicious': attributes.get('last_analysis_stats').get('malicious'),
-        'engine_count': attributes.get('last_analysis_stats').get('malicious') +
-        attributes.get('last_analysis_stats').get('suspicious') +
-        attributes.get('last_analysis_stats').get('undetected') +
-        attributes.get('last_analysis_stats').get('harmless') +
-        attributes.get('last_analysis_stats').get('timeout'),
+        'engine_count': sum(attributes.get('last_analysis_stats').values()),
         'reputation': attributes.get('reputation'),
         'tags': attributes.get('tags'),
         'last_modification_date': datetime.utcfromtimestamp(attributes.get('last_modification_date')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
     }
 
-    if indicator.type == IndicatorType.ip:
-        pass
-    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
+    if indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
         result.update({
             'registrar': attributes.get('registrar')
         })
@@ -73,23 +67,21 @@ def virustotal_handle(indicator):
     return result
 
 
-def abuseipdb_handle(indicator):
+async def abuseipdb_handle(indicator):
     
-    url = 'https://api.abuseipdb.com/api/v2/check'
-
-    querystring = {
-        'ipAddress': indicator.as_a_string,
-        'verbose': True
-    }
-
     headers = {
         'accept': 'application/json',
         'key': settings.ABUSEIPDB_API_KEY
     }
+    querystring = {
+        'ipAddress': indicator.as_a_string,
+        'verbose': 'True'
+    }
+    
+    async with ClientSession(base_url="https://api.abuseipdb.com", headers=headers) as session:
+        response = await fetch(session, '/api/v2/check', params=querystring)
 
-    response = requests.request(method='GET', url=url, headers=headers, params=querystring)
-    response_decoded = json.loads(response.text)
-    data = response_decoded.get('data')
+    data = response.get('data')
 
     # Get reports from response
     reports = data.get('reports')
@@ -127,29 +119,27 @@ def abuseipdb_handle(indicator):
     return result
 
 
-def alienvault_handle(indicator):
+async def alienvault_handle(indicator):
     
-    HEADERS = {
+    if indicator.type == IndicatorType.ip:
+        general_url = f"/api/v1/indicators/IPv4/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.hostname:
+        general_url = f"/api/v1/indicators/hostname/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.domain:
+        general_url = f"/api/v1/indicators/domain/{indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.hash:
+        general_url = f"/api/v1/indicators/file/{indicator.as_a_string}/general/"
+
+    headers = {
         "accept": "application/json",
         "x-otx-api-key": settings.OTX_API_KEY
     }
 
-    general_url = ""
-    
-    if indicator.type == IndicatorType.ip:
-        general_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.hostname:
-        general_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.domain:
-        general_url = f"https://otx.alienvault.com/api/v1/indicators/domain/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.hash:
-        general_url = f"https://otx.alienvault.com/api/v1/indicators/file/{indicator.as_a_string}/general/"
-
-    general_response = requests.get(general_url, headers=HEADERS)
-    general_response_decoded = json.loads(general_response.text)
+    session = ClientSession(base_url="https://otx.alienvault.com", headers=headers)
+    general_response = await fetch(session, general_url)
 
     # Collecting pulses data
-    pulse_info = general_response_decoded.get('pulse_info')
+    pulse_info = general_response.get('pulse_info')
 
     # Get pulses from response
     pulses = pulse_info.get('pulses')
@@ -191,45 +181,43 @@ def alienvault_handle(indicator):
 
 
     if indicator.type in [IndicatorType.ip, IndicatorType.hostname, IndicatorType.domain]:
-        passive_dns_url = ''
-
+        
         if indicator.type == IndicatorType.ip:
-            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{indicator.as_a_string}/passive_dns/"
+            passive_dns_url = f"/api/v1/indicators/IPv4/{indicator.as_a_string}/passive_dns/"
         elif indicator.type == IndicatorType.hostname:
-            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{indicator.as_a_string}/passive_dns/"
+            passive_dns_url = f"/api/v1/indicators/hostname/{indicator.as_a_string}/passive_dns/"
         elif indicator.type == IndicatorType.domain:
-            passive_dns_url = f"https://otx.alienvault.com/api/v1/indicators/domain/{indicator.as_a_string}/passive_dns/"
+            passive_dns_url = f"/api/v1/indicators/domain/{indicator.as_a_string}/passive_dns/"
 
-        passive_dns_response = requests.get(passive_dns_url, headers=HEADERS)
-        passive_dns_response_decoded = json.loads(passive_dns_response.text)
+        passive_dns_response = await fetch(session, passive_dns_url)
 
         last_passive_dns = []
         
         if indicator.type == IndicatorType.ip:
-            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
                 last_passive_dns.append(passive_dns.get('hostname'))
             
             result.update({
-                'asn': general_response_decoded.get('asn'),
-                'country_name': general_response_decoded.get('country_name'),
-                'city': general_response_decoded.get('city'),
-                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'asn': general_response.get('asn'),
+                'country_name': general_response.get('country_name'),
+                'city': general_response.get('city'),
+                'passive_dns_count': passive_dns_response.get('count'),
                 'last_passive_dns': last_passive_dns
             })
         elif indicator.type == IndicatorType.hostname:
-            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
                 last_passive_dns.append({
                     'address': passive_dns.get('address'),
                     'record_type': passive_dns.get('record_type')
                 })
             
             result.update({
-                'domain': general_response_decoded.get('domain'),
-                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'domain': general_response.get('domain'),
+                'passive_dns_count': passive_dns_response.get('count'),
                 'last_passive_dns': last_passive_dns
             })
         elif indicator.type == IndicatorType.domain:
-            for passive_dns in passive_dns_response_decoded.get('passive_dns')[:5]:
+            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
                 last_passive_dns.append({
                     'hostname': passive_dns.get('hostname'),
                     'address': passive_dns.get('address'),
@@ -237,18 +225,17 @@ def alienvault_handle(indicator):
                 })
             
             result.update({
-                'domain': general_response_decoded.get('domain'),
-                'passive_dns_count': passive_dns_response_decoded.get('count'),
+                'domain': general_response.get('domain'),
+                'passive_dns_count': passive_dns_response.get('count'),
                 'last_passive_dns': last_passive_dns
             })
     elif indicator.type == IndicatorType.hash:
-        analysis_url = f"https://otx.alienvault.com/api/v1/indicators/file/{indicator.as_a_string}/analysis/"
+        analysis_url = f"/api/v1/indicators/file/{indicator.as_a_string}/analysis/"
         
-        analysis_response = requests.get(analysis_url, headers=HEADERS)
-        analysis_response_decoded = json.loads(analysis_response.text)
+        analysis_response = await fetch(session, analysis_url)
 
-        analysis_info_results = analysis_response_decoded.get('analysis').get('info').get('results')
-        analysis_info_plugins_metaextract_results = analysis_response_decoded.get('analysis').get('plugins').get('metaextract').get('results')
+        analysis_info_results = analysis_response.get('analysis').get('info').get('results')
+        analysis_info_plugins_metaextract_results = analysis_response.get('analysis').get('plugins').get('metaextract').get('results')
 
         result.update({
             'md5': analysis_info_results.get('md5'),
@@ -260,4 +247,6 @@ def alienvault_handle(indicator):
             'metaextract_ips': analysis_info_plugins_metaextract_results.get('ips')
         })
 
+    await session.close()
+    
     return result
