@@ -37,7 +37,6 @@ async def search(request):
                     'vt_result': vt_result,
                     'alienvault_result': alienvault_result
                 })
-
-        cache.set(indicator_input, result, timeout=3600)
+            cache.set(indicator_input, result, timeout=3600)
 
         return render(request, 'check/result.html', result)
