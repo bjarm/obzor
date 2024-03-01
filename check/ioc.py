@@ -33,10 +33,14 @@ def typify(indicator):
 
 def is_valid_ip(ip_str):
     try:
-        ipaddress.ip_address(ip_str)
-        return True
+        ip = ipaddress.ip_address(ip_str)
     except ValueError:
         return False
+    else:
+        if ipaddress.ip_address(ip_str).is_global:
+            return True
+        else:
+            return False
 
 
 def is_valid_domain(domain_str):
