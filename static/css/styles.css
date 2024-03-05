@@ -35,3 +35,56 @@ body {
 .navbar-brand {
     margin-left: var(--bs-navbar-brand-margin-end);
 }
+
+.nav .nav-link {
+    color: white !important;
+}
+
+.nav .active {
+    background-color: #212529 !important;
+    color: white !important;
+    border-color: #1A1D1F !important;
+    border-bottom: 0 !important;
+}
+
+.card-body {
+    background-color: #212529 !important;
+}
+
+.card {
+    background-color: #1A1D1F !important;
+    border: 2px solid;
+    border-color: #1A1D1F !important;
+}
+
+.table {
+    background-color: #212529 !important;
+}
+
+.pre-scrollable {
+    max-height: 340px;
+    overflow-y: scroll;
+}
+
+.accordion {
+	--bs-accordion-btn-color: white;
+	--bs-accordion-btn-bg: #1A1D1F;
+	--bs-accordion-active-color: white;
+	--bs-accordion-active-bg: #212529;
+    --bs-accordion-bg: #212529;
+    --bs-accordion-border-width: 0px;
+    --bs-accordion-btn-focus-box-shadow: none;
+}
+
+td {
+    padding-left: 20px !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active  {
+    -webkit-box-shadow: 0 0 0 30px #212529 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
