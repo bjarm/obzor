@@ -118,9 +118,13 @@ async def abuseipdb_handle(indicator):
             'country_name': data.get('countryName'),
             'is_tor': data.get('isTor'),
             'total_reports': data.get('totalReports'),
-            'last_reported_at': datetime.fromisoformat(data.get('lastReportedAt')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z"),
             'categories': categories
         })
+
+        if data.get('lastReportedAt'):
+            result.update({
+                'last_reported_at': datetime.fromisoformat(data.get('lastReportedAt')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+            })
 
     return result
 
