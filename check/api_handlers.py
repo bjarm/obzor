@@ -3,6 +3,8 @@ from aiohttp import ClientSession
 from datetime import datetime, timezone
 from check.ioc import Indicator, IndicatorType
 from django.conf import settings
+from ipwhois import ipwhois
+import json
 
 
 async def fetch(session, url, params=None):
@@ -267,3 +269,55 @@ async def alienvault_handle(indicator):
     await session.close()
     
     return result
+
+def rdap_ip_handle(ip):
+    lookup_result = ipwhois.IPWhois(ip.as_a_string).lookup_rdap(inc_raw = True)
+
+    processed_result = {
+        'asn': 'N/A',
+        'asn_description': '',
+        'asn_country_code': 'N/A',
+        'asn_cidr': 'N/A',
+        'network_name': 'N/A',
+        'network_start_address': 'N/A',
+        'network_end_address': 'N/A',
+        'last_changed': 'N/A',
+        'registration': 'N/A',
+        'raw': 'N/A'
+    }
+
+    if lookup_result:
+        processed_result.update({
+            'asn': lookup_result.get('asn', 'N/A'),
+            'asn_country_code': lookup_result.get('asn_country_code', 'N/A'),
+            'asn_cidr': lookup_result.get('asn_cidr', 'N/A'),
+            'raw': json.dumps(lookup_result.get('raw', 'N/A'), indent=4)
+        })
+
+        if processed_result['asn'] not in lookup_result.get('asn_description', ''):
+            processed_result.update({
+            'asn_description': lookup_result.get('asn_description', ''),
+        })
+
+        network = lookup_result.get('network')
+        processed_result.update({
+            'network_name': network.get('name', 'N/A'),
+            'network_start_address': network.get('start_address', 'N/A'),
+            'network_end_address': network.get('end_address', 'N/A')
+        })
+
+        events = network.get('events')
+        if events:
+            for event in events:
+                if event.get('action') == 'last changed':
+                    event_time = datetime.fromisoformat(event.get('timestamp')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                    processed_result.update({
+                        'last_changed': event_time
+                    })
+                elif event.get('action') == 'registration':
+                    event_time = datetime.fromisoformat(event.get('timestamp')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                    processed_result.update({
+                        'registration': event_time
+                    })
+
+    return processed_result
