@@ -81,7 +81,8 @@ async def abuseipdb_handle(indicator):
     }
     querystring = {
         'ipAddress': indicator.as_a_string,
-        'verbose': 'True'
+        'verbose': 'True',
+        'maxAgeInDays': 365
     }
     
     async with ClientSession(base_url="https://api.abuseipdb.com", headers=headers) as session:
@@ -91,24 +92,27 @@ async def abuseipdb_handle(indicator):
     result = {}
 
     if data:
-        # Get reports from response
         reports = data.get('reports')
-        # List for unique category IDs 
-        categories_id = []
-        # Collecting unique IDs
+        categories_count = {}
+        reports_data = {}
         if reports:
-            for report in data.get('reports'):
-                for category_id in report.get('categories', []):
-                    if category_id not in categories_id:
-                        categories_id.append(category_id)
-        # Access the file with the table of categories (ID, title, description)
+            for report in reports:
+                for category in report.get('categories'):
+                    key = category
+                    categories_count[key] = categories_count.get(key, 0) + 1
+            reports_data = reports_to_stat_data(reports)
+        
+        sorted_categories = [item[0] for item in sorted(categories_count.items(), key=lambda x: x[1], reverse=True)]
+        if len(sorted_categories) > 5:
+            sorted_categories = sorted_categories[:5]
+
         with open(str(settings.BASE_DIR) + '\\check\\abuse_categories.toml', 'rb') as file:
             abuseipdb_categories = tomllib.load(file)
-        # List for unique categories
-        categories = []
-        # Collecting information about the categories of IDs we have previously received 
-        for category_id in categories_id:
-            categories.append(abuseipdb_categories.get('categories').get(str(category_id)).get('title'))
+
+        top_categories = []
+
+        for category_id in sorted_categories:
+            top_categories.append(abuseipdb_categories.get('categories').get(str(category_id)).get('title'))
 
         result.update({
             'is_whitelisted': data.get('isWhitelisted'),
@@ -120,7 +124,8 @@ async def abuseipdb_handle(indicator):
             'country_name': data.get('countryName'),
             'is_tor': data.get('isTor'),
             'total_reports': data.get('totalReports'),
-            'categories': categories
+            'top_categories': top_categories,
+            'reports_data': reports_data
         })
 
         if data.get('lastReportedAt'):
@@ -130,6 +135,38 @@ async def abuseipdb_handle(indicator):
 
     return result
 
+
+def reports_to_stat_data(reports):
+
+    temp_reports_data = []
+
+    for report in reports:
+        for category in report.get('categories'):
+            temp_reports_data.append({
+                'date': datetime.strptime(report.get('reportedAt')[:10], '%Y-%m-%d'),
+                'category': category,
+            })
+
+    reports_data = {
+        'date': [],
+        'category': [],
+        'count': []
+    }
+
+    count_dict = {}
+    for report in temp_reports_data:
+        key = (report.get('date'), report.get('category'))
+        count_dict[key] = count_dict.get(key, 0) + 1
+
+    with open(str(settings.BASE_DIR) + '\\check\\abuse_categories.toml', 'rb') as file:
+        abuseipdb_categories = tomllib.load(file)
+
+    for (date, category), count in count_dict.items():
+        reports_data.get('date').append(date)
+        reports_data.get('category').append(abuseipdb_categories.get('categories').get(str(category)).get('title'))
+        reports_data.get('count').append(count)
+
+    return reports_data
 
 async def alienvault_handle(indicator):
     

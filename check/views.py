@@ -2,6 +2,8 @@ from django.shortcuts import render, HttpResponse
 from check.api_handlers import vt_handle, abuseipdb_handle, alienvault_handle, rdap_ip_handle
 from check.ioc import IndicatorType, Indicator
 from django.core.cache import cache
+from plotly import express as px
+import pandas as pd
 import asyncio
 
 
@@ -28,6 +30,14 @@ async def search(request):
                 rdap_result = rdap_ip_handle(indicator)
 
                 vt_result, alienvault_result, abuseipdb_result = await asyncio.gather(vt_handle(indicator), alienvault_handle(indicator), abuseipdb_handle(indicator))
+                
+                if abuseipdb_result.get('reports_data'):
+                    df = pd.DataFrame(abuseipdb_result.get('reports_data'))
+                    abuse_fig = px.bar(df, x ='date', y ='count', color='category', text_auto=True, template='plotly_dark', 
+                                            title='Статистика жалоб на IP', labels={'date': 'Дата', 'count': 'Количество жалоб', 'category': 'Категория'})
+                    abuse_fig.update_layout(plot_bgcolor='rgb(33,37,41)', paper_bgcolor='rgb(33,37,41)')
+                    abuseipdb_result.update({'figure': abuse_fig.to_html(full_html=False)})
+
                 result.update({
                     'rdap_result': rdap_result,
                     'abuseipdb_result': abuseipdb_result,
