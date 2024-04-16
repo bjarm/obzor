@@ -106,7 +106,7 @@ async def abuseipdb_handle(indicator):
         if len(sorted_categories) > 5:
             sorted_categories = sorted_categories[:5]
 
-        with open(str(settings.BASE_DIR) + '\\check\\abuse_categories.toml', 'rb') as file:
+        with open(str(settings.BASE_DIR) + '/check/abuse_categories.toml', 'rb') as file:
             abuseipdb_categories = tomllib.load(file)
 
         top_categories = []
@@ -158,7 +158,7 @@ def reports_to_stat_data(reports):
         key = (report.get('date'), report.get('category'))
         count_dict[key] = count_dict.get(key, 0) + 1
 
-    with open(str(settings.BASE_DIR) + '\\check\\abuse_categories.toml', 'rb') as file:
+    with open(str(settings.BASE_DIR) + '/check/abuse_categories.toml', 'rb') as file:
         abuseipdb_categories = tomllib.load(file)
 
     for (date, category), count in count_dict.items():
