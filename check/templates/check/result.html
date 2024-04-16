@@ -7,6 +7,7 @@
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/prettify.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}">
 {% endblock css %}
 
 {% block body_onload %}onload="PR.prettyPrint()"{% endblock body_onload %}
@@ -77,7 +78,7 @@
                                       <div id="collapseRDAP" class="accordion-collapse collapse" aria-labelledby="rdapHeading" data-bs-parent="#rdapAccordion">
                                         <div class="accordion-body">
                                             <pre class="pre-scrollable prettyprint lang-js" id="rdapResult">{{ rdap_result.raw }}</pre>
-                                            <button type="button" class="btn btn-dark btn-sm" id="copyButton" data-clipboard-target="#rdapResult">Скопировать в буфер обмена</button>
+                                            <button type="button" class="btn btn-main btn-sm" id="copyButton" data-clipboard-target="#rdapResult">Скопировать в буфер обмена</button>
                                         </div>
                                       </div>
                                     </div>
@@ -124,10 +125,10 @@
                                                             <td>{{ abuseipdb_result.top_categories }}</td>
                                                         </tr>
                                                     {% endif %}
-                                                        <tr>
-                                                            <td>Количество жалоб:</td>
-                                                            <td>{{ abuseipdb_result.total_reports }}</td>
-                                                        </tr>
+                                                    <tr>
+                                                        <td>Количество жалоб:</td>
+                                                        <td>{{ abuseipdb_result.total_reports }}</td>
+                                                    </tr>
                                                     {% if abuseipdb_result.last_reported_at %}
                                                         <tr>
                                                             <td>Дата последней жалобы:</td>
@@ -488,10 +489,32 @@
                                                         <td>Количество доменных имен:</td>
                                                         <td>{{ alienvault_result.passive_dns_count }}</td>
                                                     </tr>
-                                                    {% if alienvault_result.last_passive_dns %}
+                                                    {% if alienvault_result.passive_dns %}
                                                         <tr>
-                                                            <td>Наиболее актуальные доменные имена:</td>
-                                                            <td>{{ alienvault_result.last_passive_dns }}</td>
+                                                            <td colspan="2">
+                                                                <table id="example" class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
+                                                                    <thead>
+                                                                        <tr>    
+                                                                        <th>IP Address</th>
+                                                                        <th>First Seen</th>
+                                                                        <th>Last Seen</th>
+                                                                        <th>Hostname</th>
+                                                                        <th>Record Type</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for record in alienvault_result.passive_dns %}
+                                                                            <tr>
+                                                                                <td>{{ record.address }}</td>
+                                                                                <td>{{ record.first }}</td>
+                                                                                <td>{{ record.last }}</td>
+                                                                                <td>{{ record.hostname }}</td>
+                                                                                <td>{{ record.record_type }}</td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
                                                         </tr>
                                                     {% endif %}
                                                 </tbody>
@@ -527,18 +550,29 @@
                                                         <td>Количество DNS-записей:</td>
                                                         <td>{{ alienvault_result.passive_dns_count }}</td>
                                                     </tr>
-                                                    {% if alienvault_result.last_passive_dns %}
+                                                    {% if alienvault_result.passive_dns %}
                                                         <tr>
-                                                            <td>Ниаболее актуальные DNS-записи:</td>
-                                                            <td class="p-0">
-                                                                <table class="table table-hover table-borderless table-dark mb-0">
-                                                                    <tbody>
-                                                                    {% for passive_dns in alienvault_result.last_passive_dns %}
-                                                                        <tr>
-                                                                            <td>{{ passive_dns.record_type }}</td>
-                                                                            <td>{{ passive_dns.address }}</td>
+                                                            <td colspan="2">
+                                                                <table id="example" class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
+                                                                    <thead>
+                                                                        <tr>    
+                                                                        <th>IP Address</th>
+                                                                        <th>First Seen</th>
+                                                                        <th>Last Seen</th>
+                                                                        <th>Hostname</th>
+                                                                        <th>Record Type</th>
                                                                         </tr>
-                                                                    {% endfor %}
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for record in alienvault_result.passive_dns %}
+                                                                            <tr>
+                                                                                <td>{{ record.address }}</td>
+                                                                                <td>{{ record.first }}</td>
+                                                                                <td>{{ record.last }}</td>
+                                                                                <td>{{ record.hostname }}</td>
+                                                                                <td>{{ record.record_type }}</td>
+                                                                            </tr>
+                                                                        {% endfor %}
                                                                     </tbody>
                                                                 </table>
                                                             </td>
@@ -577,19 +611,29 @@
                                                         <td>Количество DNS-записей:</td>
                                                         <td>{{ alienvault_result.passive_dns_count }}</td>
                                                     </tr>
-                                                    {% if alienvault_result.last_passive_dns %}
+                                                    {% if alienvault_result.passive_dns %}
                                                         <tr>
-                                                            <td>Ниаболее актуальные DNS-записи:</td>
-                                                            <td class="p-0">
-                                                                <table class="table table-hover table-borderless table-dark mb-0">
-                                                                    <tbody>
-                                                                    {% for passive_dns in alienvault_result.last_passive_dns %}
-                                                                        <tr>
-                                                                            <td>{{ passive_dns.hostname }}</td>
-                                                                            <td>{{ passive_dns.record_type }}</td>
-                                                                            <td>{{ passive_dns.address }}</td>
+                                                            <td colspan="2">
+                                                                <table id="example" class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
+                                                                    <thead>
+                                                                        <tr>    
+                                                                        <th>IP Address</th>
+                                                                        <th>First Seen</th>
+                                                                        <th>Last Seen</th>
+                                                                        <th>Hostname</th>
+                                                                        <th>Record Type</th>
                                                                         </tr>
-                                                                    {% endfor %}
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for record in alienvault_result.passive_dns %}
+                                                                            <tr>
+                                                                                <td>{{ record.address }}</td>
+                                                                                <td>{{ record.first }}</td>
+                                                                                <td>{{ record.last }}</td>
+                                                                                <td class="td_value">{{ record.hostname }}</td>
+                                                                                <td>{{ record.record_type }}</td>
+                                                                            </tr>
+                                                                        {% endfor %}
                                                                     </tbody>
                                                                 </table>
                                                             </td>
@@ -691,5 +735,6 @@
 {% block scripts %}
     <script src="{% static 'js/prettify.js' %}"></script>
     <script src="{% static 'js/clipboard.min.js' %}"></script>
+    <script src="{% static 'js/datatables.js' %}"></script>
     <script src="{% static 'js/copy.js' %}"></script>
 {% endblock scripts %}

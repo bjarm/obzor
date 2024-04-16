@@ -266,47 +266,20 @@ async def alienvault_handle(indicator):
 
         passive_dns_response = await fetch(session, passive_dns_url)
 
-        last_passive_dns = []
-        
-        if indicator.type == IndicatorType.ip:
-            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
-                last_passive_dns.append(passive_dns.get('hostname'))
-            
-            result.update({
-                'asn': general_response.get('asn'),
-                'country_name': general_response.get('country_name'),
-                'city': general_response.get('city'),
-                'passive_dns_count': passive_dns_response.get('count'),
-                'last_passive_dns': last_passive_dns
-            })
-        elif indicator.type == IndicatorType.hostname:
-            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
-                last_passive_dns.append({
-                    'address': passive_dns.get('address'),
-                    'record_type': passive_dns.get('record_type')
-                })
-            
-            result.update({
-                'domain': general_response.get('domain'),
-                'passive_dns_count': passive_dns_response.get('count'),
-                'last_passive_dns': last_passive_dns
-            })
-        elif indicator.type == IndicatorType.domain:
-            for passive_dns in passive_dns_response.get('passive_dns')[:5]:
-                last_passive_dns.append({
-                    'hostname': passive_dns.get('hostname'),
-                    'address': passive_dns.get('address'),
-                    'record_type': passive_dns.get('record_type')
-                })
-            
-            result.update({
-                'domain': general_response.get('domain'),
-                'passive_dns_count': passive_dns_response.get('count'),
-                'last_passive_dns': last_passive_dns
-            })
-    elif indicator.type == IndicatorType.hash:
-        analysis_url = f"/api/v1/indicators/file/{indicator.as_a_string}/analysis/"
-        
+        passive_dns = passive_dns_response.get('passive_dns')
+        for record in passive_dns:
+            record.update({'first': format_iso_date(record.get('first'))})
+            record.update({'last': format_iso_date(record.get('last'))})
+
+        result.update({
+            'passive_dns_count': passive_dns_response.get('count'),
+            'passive_dns': passive_dns
+        })
+
+    elif indicator.type == IndicatorType.HASH:
+        analysis_url = f"/api/v1/indicators/file/{
+            indicator.as_a_string}/analysis/"
+
         analysis_response = await fetch(session, analysis_url)
 
         analysis = analysis_response.get('analysis')

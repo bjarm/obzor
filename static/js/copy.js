@@ -9,3 +9,64 @@ if (toastTrigger) {
     toast.show()
   })
 }
+
+new DataTable('#example', {
+  columnDefs: [
+    { className: "td_value", targets: [0, 3] }
+  ],
+  paging: false,
+  scrollCollapse: true,
+  scrollY: '300px',
+  select: true,
+  layout: {
+    topStart: function () {
+      let toolbar = document.createElement('div');
+      toolbar.innerHTML = '<b>Passive DNS</b>';
+
+      return toolbar;
+    },
+    topEnd: null,
+    bottomStart: {
+      buttons: [
+        {
+          extend: 'copy',
+          text: "Копировать",
+          title: null,
+          messageTop: null,
+          header: false,
+          footer: false,
+          className: "btn-main",
+          action: function (e, dt, node, config, cb) {
+            DataTable.ext.buttons.copyHtml5.action.call(this, e, dt, node, config, cb);
+            const toast = new bootstrap.Toast(toastLiveExample);
+            toast.show();
+          }
+        },
+        {
+          extend: 'excel',
+          className: "btn-main"
+        },
+        {
+          extend: 'csv',
+          className: "btn-main"
+        },
+        {
+          extend: 'pdf',
+          className: "btn-main"
+        },
+        {
+          extend: 'print',
+          text: "Печать",
+          className: "btn-main"
+        }
+      ]
+    },
+    bottomEnd: {
+      search: {
+        text: '',
+        placeholder: 'Поиск по таблице'
+      }
+    }
+  }
+}
+);
