@@ -5,8 +5,9 @@ body {
 }
 
 .form-control {
-    background-color:rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
     margin-left: 0;
+
     /* Убирает подсветку у поля ввода при фокусе */
     &:focus {
         box-shadow: none;
@@ -15,8 +16,10 @@ body {
 
 /* Класс для слишком длинных значений ячеек таблицы (разрывает слова) */
 .td_value {
-    overflow-wrap: break-word; /* Перенос слов при необходимости */
-    white-space: normal;   /* Обычное отображение текста внутри ячейки */
+    overflow-wrap: break-word;
+    /* Перенос слов при необходимости */
+    white-space: normal;
+    /* Обычное отображение текста внутри ячейки */
     word-break: break-all;
 }
 
@@ -24,7 +27,7 @@ body {
 Почему то для этих наследников input-group margin-left высчитывается по формуле calc(var(--bs-border-width) * -1) из-за чего срезается 1 пиксель правой границы
 Пофиксить удалось только захардкодив margin-left
 */
-.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+.input-group> :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
     margin-left: 1px;
 }
 
@@ -83,7 +86,7 @@ td {
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
-input:-webkit-autofill:active  {
+input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px #212529 inset !important;
     -webkit-text-fill-color: white !important;
     transition: background-color 5000s ease-in-out 0s;

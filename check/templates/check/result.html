@@ -13,7 +13,7 @@
 
 {% block content %}
     <div class="container-fluid mt-5">
-        {% if indicator_type == 'not_ioc' %}
+        {% if indicator_type == 'NOT_IOC' %}
             <div class="text-white text-center">
                 <h3>Некорректный индикатор</h3>
                 <p>
@@ -24,7 +24,7 @@
             </div>
         {% else %}
             <div class="row">
-                {% if indicator_type == 'ip' %}
+                {% if indicator_type == 'IP' %}
                     <div class="col-md-4">
                         <div class="card text-bg-dark mb-3">
                             <div class="card-header">
@@ -90,7 +90,7 @@
                     <div class="card text-bg-dark mb-3">
                         <div class="card-header">
                             <ul class="nav nav-tabs card-header-tabs" id="resources-tab" role="tablist">
-                                {% if indicator_type == 'ip' %}
+                                {% if indicator_type == 'IP' %}
                                     <li class="nav-item">
                                         <button class="nav-link active" id="abuseipdb-tab" data-bs-toggle="tab" data-bs-target="#abuseipdb-tab-pane" role="tab" aria-controls="abuseipdb-tab-pane" aria-selected="true">AbuseIPDB</button >
                                     </li>
@@ -109,7 +109,7 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="tab-content" id="nav-tabContent">
-                                {% if indicator_type == 'ip' %}
+                                {% if indicator_type == 'IP' %}
                                     <div class="tab-pane fade show active" id="abuseipdb-tab-pane" role="tabpanel" aria-labelledby="abuseipdb-tab" tabindex="0">
                                         {% if abuseipdb_result %}
                                             <table class="table table-hover table-borderless table-dark mt-1">
@@ -124,12 +124,10 @@
                                                             <td>{{ abuseipdb_result.top_categories }}</td>
                                                         </tr>
                                                     {% endif %}
-                                                    {% if abuseipdb_result.total_reports %}
                                                         <tr>
                                                             <td>Количество жалоб:</td>
                                                             <td>{{ abuseipdb_result.total_reports }}</td>
                                                         </tr>
-                                                    {% endif %}
                                                     {% if abuseipdb_result.last_reported_at %}
                                                         <tr>
                                                             <td>Дата последней жалобы:</td>
@@ -138,14 +136,8 @@
                                                     {% endif %}
                                                     <tr>
                                                         <td>Присутствует в белом списке AbuseIPDB:</td>
-                                                        <td>{{ abuseipdb_result.is_whitelisted }}</td>
+                                                        <td>{{ abuseipdb_result.is_whitelisted|yesno:"Да,Нет" }}</td>
                                                     </tr>
-                                                    {% if abuseipdb_result.isp %}
-                                                        <tr>
-                                                            <td>ISP:</td>
-                                                            <td>{{ abuseipdb_result.isp }}</td>
-                                                        </tr>
-                                                    {% endif %}
                                                     {% if abuseipdb_result.usage_type %}
                                                         <tr>
                                                             <td>Тип использования:</td>
@@ -164,10 +156,6 @@
                                                             <td>{{ abuseipdb_result.domain }}</td>
                                                         </tr>
                                                     {% endif %}
-                                                    <tr>
-                                                        <td>Страна:</td>
-                                                        <td>{{ abuseipdb_result.country_name }}</td>
-                                                    </tr>
                                                     {% if abuseipdb_result.is_tor %}
                                                         <tr>
                                                             <td>Принадлежит сети TOR:</td>
@@ -191,7 +179,7 @@
                                     </div>
                                     <div class="tab-pane fade" id="virustotal-tab-pane" role="tabpanel" aria-labelledby="virustotal-tab" tabindex="0">
                                         {% if vt_result %}
-                                            {% if indicator_type == 'ip' %}
+                                            {% if indicator_type == 'IP' %}
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
                                                         <tr>
@@ -199,7 +187,7 @@
                                                             <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Репутация:</td>
+                                                            <td>Пользовательский рейтинг:</td>
                                                             <td>{{ vt_result.reputation }}</td>
                                                         </tr>
                                                         {% if vt_result.tags %}
@@ -212,13 +200,9 @@
                                                             <td>Дата последнего анализа:</td>
                                                             <td>{{ vt_result.last_analysis_date }}</td>
                                                         </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации об IP:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
                                                     </tbody>
                                                 </table>
-                                            {% elif indicator_type == 'domain' or indicator_type == 'hostname' %}
+                                            {% elif indicator_type == 'DOMAIN' or indicator_type == 'HOSTNAME' %}
                                                 <!-- Карточка VT для домена -->
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
@@ -250,7 +234,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                            {% elif indicator_type == 'hash' %}
+                                            {% elif indicator_type == 'HASH' %}
                                                 <!-- Карточка VT для хеша -->
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
@@ -332,7 +316,7 @@
                                 {% else %}  
                                     <div class="tab-pane fade show active" id="virustotal-tab-pane" role="tabpanel" aria-labelledby="virustotal-tab" tabindex="0">
                                         {% if vt_result %}
-                                            {% if indicator_type == 'ip' %}
+                                            {% if indicator_type == 'IP' %}
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
                                                         <tr>
@@ -359,7 +343,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                            {% elif indicator_type == 'domain' or indicator_type == 'hostname' %}
+                                            {% elif indicator_type == 'DOMAIN' or indicator_type == 'HOSTNAME' %}
                                                 <!-- Карточка VT для домена -->
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
@@ -391,7 +375,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                            {% elif indicator_type == 'hash' %}
+                                            {% elif indicator_type == 'HASH' %}
                                                 <!-- Карточка VT для хеша -->
                                                 <table class="table table-hover table-borderless table-dark mt-1">
                                                     <tbody>
@@ -473,7 +457,7 @@
                                 {% endif %}
                                 <div class="tab-pane fade" id="alienvault-tab-pane" role="tabpanel" aria-labelledby="alienvault-tab" tabindex="0">
                                     {% if alienvault_result %}
-                                        {% if indicator_type == 'ip' %}
+                                        {% if indicator_type == 'IP' %}
                                             <table class="table table-hover table-borderless table-dark mt-1">
                                                 <tbody>
                                                     {% if alienvault_result.tags %}
@@ -501,14 +485,6 @@
                                                         </tr>
                                                     {% endif %}
                                                     <tr>
-                                                        <td>ASN:</td>
-                                                        <td>{{ alienvault_result.asn }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Местоположение:</td>
-                                                        <td>{{ alienvault_result.country_name }}, {{ alienvault_result.city }}</td>
-                                                    </tr>
-                                                    <tr>
                                                         <td>Количество доменных имен:</td>
                                                         <td>{{ alienvault_result.passive_dns_count }}</td>
                                                     </tr>
@@ -520,7 +496,7 @@
                                                     {% endif %}
                                                 </tbody>
                                             </table>
-                                        {% elif indicator_type == 'hostname' %}
+                                        {% elif indicator_type == 'HOSTNAME' %}
                                             <table class="table table-hover table-borderless table-dark mt-1">
                                                 <tbody>
                                                     {% if alienvault_result.tags %}
@@ -570,7 +546,7 @@
                                                     {% endif %}
                                                 </tbody>
                                             </table>
-                                        {% elif indicator_type == 'domain' %}
+                                        {% elif indicator_type == 'DOMAIN' %}
                                             <table class="table table-hover table-borderless table-dark mt-1">
                                                 <tbody>
                                                     {% if alienvault_result.tags %}
@@ -621,7 +597,7 @@
                                                     {% endif %}
                                                 </tbody>
                                             </table>
-                                        {% elif indicator_type == 'hash' %}
+                                        {% elif indicator_type == 'HASH' %}
                                             <table class="table table-hover table-borderless table-dark mt-1">
                                                 <tbody>
                                                     {% if alienvault_result.tags %}

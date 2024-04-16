@@ -1,24 +1,34 @@
 import tomllib
-from aiohttp import ClientSession
 from datetime import datetime, timezone
-from check.ioc import Indicator, IndicatorType
+import json
+from aiohttp import ClientSession
 from django.conf import settings
 from ipwhois import ipwhois
-import json
+from check.ioc import IndicatorType
 
 
 async def fetch(session, url, params=None):
     async with session.get(url, params=params) as response:
         return await response.json()
 
+def format_timestamp(timestamp):
+    date = datetime.fromtimestamp(timestamp, timezone.utc)
+    formatted_date = date.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return formatted_date
+
+def format_iso_date(iso_date):
+    date = datetime.fromisoformat(iso_date)
+    utcfied_date = date.replace(tzinfo=timezone.utc)
+    formatted_date = utcfied_date.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return formatted_date
 
 async def vt_handle(indicator):
 
-    if indicator.type == IndicatorType.ip:
+    if indicator.type == IndicatorType.IP:
         url = f"/api/v3/ip_addresses/{indicator.as_a_string}"
-    elif indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
+    elif indicator.type == IndicatorType.DOMAIN or indicator.type == IndicatorType.HOSTNAME:
         url = f"/api/v3/domains/{indicator.as_a_string}"
-    elif indicator.type == IndicatorType.hash:
+    elif indicator.type == IndicatorType.HASH:
         url = f"/api/v3/files/{indicator.as_a_string}"
 
     headers = {
@@ -35,20 +45,23 @@ async def vt_handle(indicator):
     if data:
         attributes = data.get('attributes')
 
+        if attributes.get('last_analysis_date'):
+            last_analysis_date = format_timestamp(attributes.get('last_analysis_date'))
+
         result.update({
-            'last_analysis_date': datetime.utcfromtimestamp(attributes.get('last_analysis_date')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            'last_analysis_date': last_analysis_date,
             'engine_malicious': attributes.get('last_analysis_stats').get('malicious'),
             'engine_count': sum(attributes.get('last_analysis_stats').values()),
             'reputation': attributes.get('reputation'),
             'tags': attributes.get('tags'),
-            'last_modification_date': datetime.utcfromtimestamp(attributes.get('last_modification_date')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+            'last_modification_date': format_timestamp(attributes.get('last_modification_date'))
         })
 
-        if indicator.type == IndicatorType.domain or indicator.type == IndicatorType.hostname:
+        if indicator.type == IndicatorType.DOMAIN or indicator.type == IndicatorType.HOSTNAME:
             result.update({
                 'registrar': attributes.get('registrar')
             })
-        elif indicator.type == IndicatorType.hash:
+        elif indicator.type == IndicatorType.HASH:
             result.update({
                 'type_extension': attributes.get('type_extension'),
                 'type_description': attributes.get('type_description'),
@@ -74,7 +87,7 @@ async def vt_handle(indicator):
 
 
 async def abuseipdb_handle(indicator):
-    
+
     headers = {
         'accept': 'application/json',
         'key': settings.ABUSEIPDB_API_KEY
@@ -84,7 +97,7 @@ async def abuseipdb_handle(indicator):
         'verbose': 'True',
         'maxAgeInDays': 365
     }
-    
+
     async with ClientSession(base_url="https://api.abuseipdb.com", headers=headers) as session:
         response = await fetch(session, '/api/v2/check', params=querystring)
 
@@ -101,8 +114,9 @@ async def abuseipdb_handle(indicator):
                     key = category
                     categories_count[key] = categories_count.get(key, 0) + 1
             reports_data = reports_to_stat_data(reports)
-        
-        sorted_categories = [item[0] for item in sorted(categories_count.items(), key=lambda x: x[1], reverse=True)]
+
+        sorted_categories = [item[0] for item in sorted(
+            categories_count.items(), key=lambda x: x[1], reverse=True)]
         if len(sorted_categories) > 5:
             sorted_categories = sorted_categories[:5]
 
@@ -112,16 +126,15 @@ async def abuseipdb_handle(indicator):
         top_categories = []
 
         for category_id in sorted_categories:
-            top_categories.append(abuseipdb_categories.get('categories').get(str(category_id)).get('title'))
+            top_categories.append(abuseipdb_categories.get(
+                'categories').get(str(category_id)).get('title'))
 
         result.update({
             'is_whitelisted': data.get('isWhitelisted'),
             'abuse_confidence_score': data.get('abuseConfidenceScore'),
             'usage_type': data.get('usageType'),
-            'isp': data.get('isp'),
             'domain': data.get('domain'),
             'hostnames': data.get('hostnames'),
-            'country_name': data.get('countryName'),
             'is_tor': data.get('isTor'),
             'total_reports': data.get('totalReports'),
             'top_categories': top_categories,
@@ -130,7 +143,7 @@ async def abuseipdb_handle(indicator):
 
         if data.get('lastReportedAt'):
             result.update({
-                'last_reported_at': datetime.fromisoformat(data.get('lastReportedAt')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                'last_reported_at': format_iso_date(data.get('lastReportedAt'))
             })
 
     return result
@@ -163,34 +176,41 @@ def reports_to_stat_data(reports):
 
     for (date, category), count in count_dict.items():
         reports_data.get('date').append(date)
-        reports_data.get('category').append(abuseipdb_categories.get('categories').get(str(category)).get('title'))
+        reports_data.get('category').append(abuseipdb_categories.get(
+            'categories').get(str(category)).get('title'))
         reports_data.get('count').append(count)
 
     return reports_data
 
+
 async def alienvault_handle(indicator):
-    
-    if indicator.type == IndicatorType.ip:
-        general_url = f"/api/v1/indicators/IPv4/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.hostname:
-        general_url = f"/api/v1/indicators/hostname/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.domain:
-        general_url = f"/api/v1/indicators/domain/{indicator.as_a_string}/general/"
-    elif indicator.type == IndicatorType.hash:
-        general_url = f"/api/v1/indicators/file/{indicator.as_a_string}/general/"
+
+    if indicator.type == IndicatorType.IP:
+        general_url = f"/api/v1/indicators/IPv4/{
+            indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.HOSTNAME:
+        general_url = f"/api/v1/indicators/hostname/{
+            indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.DOMAIN:
+        general_url = f"/api/v1/indicators/domain/{
+            indicator.as_a_string}/general/"
+    elif indicator.type == IndicatorType.HASH:
+        general_url = f"/api/v1/indicators/file/{
+            indicator.as_a_string}/general/"
 
     headers = {
         "accept": "application/json",
         "x-otx-api-key": settings.OTX_API_KEY
     }
 
-    session = ClientSession(base_url="https://otx.alienvault.com", headers=headers)
+    session = ClientSession(
+        base_url="https://otx.alienvault.com", headers=headers)
     general_response = await fetch(session, general_url)
 
     # Collecting pulses data
     pulse_info = general_response.get('pulse_info')
     result = {}
-    
+
     if pulse_info:
         # Get pulses from response
         pulses = pulse_info.get('pulses')
@@ -201,12 +221,12 @@ async def alienvault_handle(indicator):
             malware_families = []
             industries = []
 
-            # Collecting unique tags from pulses that have more than 1000 subscribers (criterion of relevancy idk)
+            # Collecting unique tags from pulses that have more than 1000 subscribers
             for pulse in pulses:
                 for tag in pulse.get('tags', []):
                     if tag not in tags and pulse.get('subscriber_count', 0) >= 1000:
                         tags.append(tag)
-            
+
             alienvault_related = pulse_info.get('related').get('alienvault')
             other_related = pulse_info.get('related').get('other')
 
@@ -232,15 +252,17 @@ async def alienvault_handle(indicator):
             if industries:
                 result.update({'industries': industries})
 
+    if indicator.type in [IndicatorType.IP, IndicatorType.HOSTNAME, IndicatorType.DOMAIN]:
 
-    if indicator.type in [IndicatorType.ip, IndicatorType.hostname, IndicatorType.domain]:
-        
-        if indicator.type == IndicatorType.ip:
-            passive_dns_url = f"/api/v1/indicators/IPv4/{indicator.as_a_string}/passive_dns/"
-        elif indicator.type == IndicatorType.hostname:
-            passive_dns_url = f"/api/v1/indicators/hostname/{indicator.as_a_string}/passive_dns/"
-        elif indicator.type == IndicatorType.domain:
-            passive_dns_url = f"/api/v1/indicators/domain/{indicator.as_a_string}/passive_dns/"
+        if indicator.type == IndicatorType.IP:
+            passive_dns_url = f"/api/v1/indicators/IPv4/{
+                indicator.as_a_string}/passive_dns/"
+        elif indicator.type == IndicatorType.HOSTNAME:
+            passive_dns_url = f"/api/v1/indicators/hostname/{
+                indicator.as_a_string}/passive_dns/"
+        elif indicator.type == IndicatorType.DOMAIN:
+            passive_dns_url = f"/api/v1/indicators/domain/{
+                indicator.as_a_string}/passive_dns/"
 
         passive_dns_response = await fetch(session, passive_dns_url)
 
@@ -291,7 +313,8 @@ async def alienvault_handle(indicator):
 
         if analysis:
             analysis_info_results = analysis.get('info').get('results')
-            analysis_info_plugins_metaextract_results = analysis_response.get('analysis').get('plugins').get('metaextract').get('results')
+            analysis_info_plugins_metaextract_results = analysis_response.get(
+                'analysis').get('plugins').get('metaextract').get('results')
 
             result.update({
                 'md5': analysis_info_results.get('md5'),
@@ -301,14 +324,15 @@ async def alienvault_handle(indicator):
                 'file_type': analysis_info_results.get('file_type'),
                 'metaextract_urls': analysis_info_plugins_metaextract_results.get('urls'),
                 'metaextract_ips': analysis_info_plugins_metaextract_results.get('ips')
-        })
+            })
 
     await session.close()
-    
+
     return result
 
+
 def rdap_ip_handle(ip):
-    lookup_result = ipwhois.IPWhois(ip.as_a_string).lookup_rdap(inc_raw = True)
+    lookup_result = ipwhois.IPWhois(ip.as_a_string).lookup_rdap(inc_raw=True)
 
     processed_result = {
         'asn': 'N/A',
@@ -333,8 +357,8 @@ def rdap_ip_handle(ip):
 
         if processed_result['asn'] not in lookup_result.get('asn_description', ''):
             processed_result.update({
-            'asn_description': lookup_result.get('asn_description', ''),
-        })
+                'asn_description': lookup_result.get('asn_description', ''),
+            })
 
         network = lookup_result.get('network')
         processed_result.update({
@@ -347,12 +371,12 @@ def rdap_ip_handle(ip):
         if events:
             for event in events:
                 if event.get('action') == 'last changed':
-                    event_time = datetime.fromisoformat(event.get('timestamp')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                    event_time = format_iso_date(event.get('timestamp'))
                     processed_result.update({
                         'last_changed': event_time
                     })
                 elif event.get('action') == 'registration':
-                    event_time = datetime.fromisoformat(event.get('timestamp')).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                    event_time = format_iso_date(event.get('timestamp'))
                     processed_result.update({
                         'registration': event_time
                     })
