@@ -3,13 +3,12 @@ from django.shortcuts import render
 from django.core.cache import cache
 from plotly import express as px
 import pandas as pd
-from check.api_handlers import (
-    vt_handle,
-    abuseipdb_handle,
-    alienvault_handle,
-    rdap_ip_handle,
-)
+from django.conf import settings
+from check.api_handlers import rdap_ip_handle
 from check.ioc import IndicatorType, Indicator
+from check.services.abuseipdb_module import AbuseIPDBHandler
+from check.services.virustotal_module import VirusTotalHandler
+from check.services.alienvault_otx_module import AlienVaultOTXHandler
 
 
 def index(request):
@@ -30,41 +29,90 @@ async def search(request):
             "indicator_type": indicator.type.name,
         }
 
-        if indicator.type != IndicatorType.NOT_IOC:
-            if indicator.type == IndicatorType.IP:
-                rdap_result = rdap_ip_handle(indicator)
+        match indicator.type:
+            case IndicatorType.NOT_IOC:
+                pass
 
-                vt_result, alienvault_result, abuseipdb_result = await asyncio.gather(
-                    vt_handle(indicator),
-                    alienvault_handle(indicator),
-                    abuseipdb_handle(indicator),
-                )
+            case (
+                IndicatorType.IP
+                | IndicatorType.DOMAIN
+                | IndicatorType.HOSTNAME
+                | IndicatorType.HASH
+            ):
+                virustotal_handler = VirusTotalHandler(settings.VT_API_KEY)
+                alienvault_otx_handler = AlienVaultOTXHandler(settings.OTX_API_KEY)
 
-                if abuseipdb_result.get("reports_data"):
-                    abuseipdb_result.update(
-                        {
-                            "figure": create_abuseipdb_chart(
-                                abuseipdb_result.get("reports_data")
+                match indicator.type:
+                    case IndicatorType.IP:
+                        rdap_result = rdap_ip_handle(indicator)
+                        abuseipdb_handler = AbuseIPDBHandler(settings.ABUSEIPDB_API_KEY)
+
+                        vt_result, alienvault_result, abuseipdb_result = (
+                            await asyncio.gather(
+                                virustotal_handler.get_ip_data(indicator),
+                                alienvault_otx_handler.get_ip_data(indicator),
+                                abuseipdb_handler.get_ip_data(indicator),
                             )
-                        }
-                    )
+                        )
 
-                result.update(
-                    {
-                        "rdap_result": rdap_result,
-                        "abuseipdb_result": abuseipdb_result,
-                        "vt_result": vt_result,
-                        "alienvault_result": alienvault_result,
-                    }
-                )
-            else:
-                vt_result, alienvault_result = await asyncio.gather(
-                    vt_handle(indicator), alienvault_handle(indicator)
-                )
-                result.update(
-                    {"vt_result": vt_result, "alienvault_result": alienvault_result}
-                )
-            cache.set(indicator_input, result, timeout=3600)
+                        if abuseipdb_result.reports_data:
+                            result.update(
+                                {
+                                    "abuseipdb_figure": create_abuseipdb_chart(
+                                        abuseipdb_result.reports_data
+                                    )
+                                }
+                            )
+
+                        result.update(
+                            {
+                                "rdap_result": rdap_result,
+                                "abuseipdb_result": abuseipdb_result,
+                                "vt_result": vt_result,
+                                "alienvault_result": alienvault_result,
+                            }
+                        )
+
+                    case IndicatorType.DOMAIN:
+                        vt_result, alienvault_result = await asyncio.gather(
+                            virustotal_handler.get_domain_data(indicator),
+                            alienvault_otx_handler.get_domain_data(indicator),
+                        )
+
+                        result.update(
+                            {
+                                "vt_result": vt_result,
+                                "alienvault_result": alienvault_result,
+                            }
+                        )
+
+                    case IndicatorType.HOSTNAME:
+                        vt_result, alienvault_result = await asyncio.gather(
+                            virustotal_handler.get_domain_data(indicator),
+                            alienvault_otx_handler.get_hostname_data(indicator),
+                        )
+
+                        result.update(
+                            {
+                                "vt_result": vt_result,
+                                "alienvault_result": alienvault_result,
+                            }
+                        )
+
+                    case IndicatorType.HASH:
+                        vt_result, alienvault_result = await asyncio.gather(
+                            virustotal_handler.get_file_data(indicator),
+                            alienvault_otx_handler.get_file_data(indicator),
+                        )
+
+                        result.update(
+                            {
+                                "vt_result": vt_result,
+                                "alienvault_result": alienvault_result,
+                            }
+                        )
+
+                cache.set(indicator_input, result, timeout=3600)
 
         return render(request, "check/result.html", result)
 
