@@ -1,10 +1,12 @@
 import tomllib
 from datetime import datetime, timezone
 import json
+from datetime import datetime
 from aiohttp import ClientSession
 from django.conf import settings
 from ipwhois import ipwhois
 from check.ioc import IndicatorType
+from check.utils import format_iso_date, format_timestamp
 
 
 async def fetch(session, url, params=None):
