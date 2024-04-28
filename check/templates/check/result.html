@@ -165,9 +165,7 @@
                                                     {% endif %}
                                                 </tbody>
                                             </table>
-                                            {% if abuseipdb_figure %}
-                                                {{ abuseipdb_figure|safe }}
-                                            {% endif %}
+                                            {% if abuseipdb_figure %}{{ abuseipdb_figure|safe }}{% endif %}
                                         {% else %}
                                             <table class="table table-hover table-bordered table-dark mb-0">
                                                 <tbody>
@@ -410,14 +408,18 @@
                                                             <td>Magic:</td>
                                                             <td>{{ vt_result.magic }}</td>
                                                         </tr>
+                                                        {% if vt_result.names %}
                                                         <tr>
                                                             <td>Все имена файла:</td>
                                                             <td>{{ vt_result.names }}</td>
                                                         </tr>
+                                                        {% endif %}
+                                                        {% if vt_result.meaningful_name %}
                                                         <tr>
                                                             <td>Имя файла:</td>
                                                             <td>{{ vt_result.meaningful_name }}</td>
                                                         </tr>
+                                                        {% endif %}
                                                         <tr>
                                                             <td>Размер файла:</td>
                                                             <td>{{ vt_result.size }}</td>
@@ -668,26 +670,36 @@
                                                             <td>{{ alienvault_result.industries }}</td>
                                                         </tr>
                                                     {% endif %}
+                                                    {% if alienvault_result.md5 %}
                                                     <tr>
                                                         <td>MD5:</td>
                                                         <td>{{ alienvault_result.md5 }}</td>
                                                     </tr>
+                                                    {% endif %}
+                                                    {% if alienvault_result.sha1 %}
                                                     <tr>
                                                         <td>SHA1:</td>
                                                         <td>{{ alienvault_result.sha1 }}</td>
                                                     </tr>
+                                                    {% endif %}
+                                                    {% if alienvault_result.sha256 %}
                                                     <tr>
                                                         <td>SHA256:</td>
                                                         <td class="td_value">{{ alienvault_result.sha256 }}</td>
                                                     </tr>
+                                                    {% endif %}
+                                                    {% if alienvault_result.filesize %}
                                                     <tr>
                                                         <td>Размер файла:</td>
                                                         <td>{{ alienvault_result.filesize }}</td>
                                                     </tr>
+                                                    {% endif %}
+                                                    {% if alienvault_result.file_type %}
                                                     <tr>
                                                         <td>Тип файла:</td>
                                                         <td>{{ alienvault_result.file_type }}</td>
                                                     </tr>
+                                                    {% endif %}
                                                     {% if alienvault_result.metaextract_urls %}
                                                         <tr>
                                                             <td>Взаимодействует с URL:</td>

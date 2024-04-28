@@ -55,7 +55,10 @@ async def search(request):
                             )
                         )
 
-                        if abuseipdb_result.reports_data:
+                        if (
+                            abuseipdb_result.reports_data
+                            and abuseipdb_result.total_reports > 0
+                        ):
                             result.update(
                                 {
                                     "abuseipdb_figure": create_abuseipdb_chart(

@@ -373,16 +373,14 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
                     if industry not in industries:
                         industries.append(industry)
 
-        analysis = analysis_json_data.get("analysis")
-
-        if analysis:
-            analysis_info_results = analysis.get("info").get("results")
-            analysis_info_plugins_metaextract_results = (
-                analysis_json_data.get("analysis")
-                .get("plugins")
-                .get("metaextract")
-                .get("results")
-            )
+        analysis = analysis_json_data.get("analysis", {})
+        analysis_info_results = analysis.get("info", {}).get("results", {})
+        analysis_info_plugins_metaextract_results = (
+            analysis_json_data.get("analysis", {})
+            .get("plugins", {})
+            .get("metaextract", {})
+            .get("results", {})
+        )
 
         return cls(
             tags=tags,
@@ -432,6 +430,12 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
     def metaextract_ips(self) -> list[str]:
         """Contains the list of IPs related to the file (information received from metaextract)"""
         return self._metaextract_urls
+
+    def __bool__(self):
+        return not self.is_empty()
+
+    def is_empty(self):
+        return all(value is None or value == [] for value in vars(self).values())
 
 
 class AlienVaultOTXHandler(ServiceHandler):

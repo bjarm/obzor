@@ -84,7 +84,10 @@ class AbuseIPDBData:
     @property
     def last_reported_at(self) -> str:
         """Contains the date of the last report to the address"""
-        return format_iso_date(self._last_reported_at)
+        if self._last_reported_at:
+            return format_iso_date(self._last_reported_at)
+        else:
+            return None
 
     @property
     def top_categories(self) -> list[str]:
