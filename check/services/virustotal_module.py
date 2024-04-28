@@ -151,6 +151,7 @@ class VirusTotalFileData(VirusTotalData):
         sha256,
         sha1,
         md5,
+        kaspersky,
     ) -> None:
         super().__init__(
             last_analysis_date,
@@ -170,6 +171,7 @@ class VirusTotalFileData(VirusTotalData):
         self._sha256 = sha256
         self._sha1 = sha1
         self._md5 = md5
+        self._kasperky = kaspersky
 
     @classmethod
     def from_json(cls, json_data: dict) -> VirusTotalFileData:
@@ -196,6 +198,7 @@ class VirusTotalFileData(VirusTotalData):
             sha256=attributes.get("sha256"),
             sha1=attributes.get("sha1"),
             md5=attributes.get("md5"),
+            kaspersky=attributes.get("last_analysis_results").get("Kaspersky"),
         )
 
     @property
@@ -247,6 +250,11 @@ class VirusTotalFileData(VirusTotalData):
     def md5(self) -> str:
         """Contains the file's MD5 hash"""
         return self._md5
+
+    @property
+    def kaspersky(self) -> dict:
+        """Contains the result of Kaspersky AV analysis"""
+        return self._kasperky
 
 
 class VirusTotalHandler(ServiceHandler):

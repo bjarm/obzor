@@ -1,14 +1,15 @@
 import asyncio
 from django.shortcuts import render
 from django.core.cache import cache
+from django.conf import settings
 from plotly import express as px
 import pandas as pd
-from django.conf import settings
 from check.api_handlers import rdap_ip_handle
 from check.ioc import IndicatorType, Indicator
 from check.services.abuseipdb_module import AbuseIPDBHandler
 from check.services.virustotal_module import VirusTotalHandler
 from check.services.alienvault_otx_module import AlienVaultOTXHandler
+from check.services.analysis_module import AnalysisModule
 
 
 def index(request):
@@ -73,6 +74,9 @@ async def search(request):
                                 "abuseipdb_result": abuseipdb_result,
                                 "vt_result": vt_result,
                                 "alienvault_result": alienvault_result,
+                                "analysis_result": AnalysisModule.analyze_ip(
+                                    vt_result, alienvault_result, abuseipdb_result
+                                ),
                             }
                         )
 
@@ -86,6 +90,9 @@ async def search(request):
                             {
                                 "vt_result": vt_result,
                                 "alienvault_result": alienvault_result,
+                                "analysis_result": AnalysisModule.analyze_domain(
+                                    vt_result, alienvault_result
+                                ),
                             }
                         )
 
@@ -99,6 +106,9 @@ async def search(request):
                             {
                                 "vt_result": vt_result,
                                 "alienvault_result": alienvault_result,
+                                "analysis_result": AnalysisModule.analyze_hostname(
+                                    vt_result, alienvault_result
+                                ),
                             }
                         )
 
@@ -112,6 +122,9 @@ async def search(request):
                             {
                                 "vt_result": vt_result,
                                 "alienvault_result": alienvault_result,
+                                "analysis_result": AnalysisModule.analyze_file(
+                                    vt_result, alienvault_result
+                                ),
                             }
                         )
 
