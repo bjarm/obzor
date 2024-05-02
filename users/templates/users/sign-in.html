@@ -1,0 +1,54 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block title %}
+    OBZOR - Вход
+{% endblock title %}
+{% block content %}
+    <main class="form-signin m-auto mt-5">
+        <div class="card text-bg-dark">
+            <h5 class="card-header">Вход</h5>
+            <div class="card-body">
+                <form action="{% url 'users:sign-in' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-floating mt-4">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_lable }}" class="text-bg-dark">Логин</label>
+                    </div>
+                    <div class="form-floating">
+                        {{ form.password }}
+                        <label for="{{ form.username.id_for_lable }}" class="text-bg-dark">Пароль</label>
+                    </div>
+                    <button class="w-100 btn btn-main btn-lg mt-4" type="submit">Войти</button>
+                    <div class="mt-2">
+                        <a href="{% url 'users:sign-up' %}" class="link-secondary">Нет аккаунта? Зарегистрируйтесь!</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if form.non_field_errors or messages %}
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                         role="alert">
+                        {{ error }}
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% elif messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show mt-5"
+                         role="alert">
+                        {{ message }}
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    </main>
+{% endblock content %}

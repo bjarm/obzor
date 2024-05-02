@@ -1,11 +1,14 @@
 {% extends "check/base.html" %}
 {% load static %}
-{% block title %}OBZOR{% endblock title %}
+{% block title %}
+    OBZOR
+{% endblock title %}
 {% block content %}
     <div class="container-fluid text-white text-center">
         <header class="mt-5">
             <div class="row">
-            <h1 class="display-1">OBZOR</h1></div>
+                <h1 class="display-1">OBZOR</h1>
+            </div>
             <p class="col-md-4 m-auto mt-3">
                 Инструмент для оперативного анализа индикаторов компрометации в рамках расследования инцидентов информационной безопасности.
             </p>
@@ -15,10 +18,18 @@
                 <div class="col-md-3">
                     <h4>Поддерживаемые типы индикаторов:</h4>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item text-bg-dark"><b>IPv4</b> (глобальные адреса)</li>
-                        <li class="list-group-item text-bg-dark"><b>Hostname</b></li>
-                        <li class="list-group-item text-bg-dark"><b>Domain</b></li>
-                        <li class="list-group-item text-bg-dark"><b>Hash</b> (SHA256, SHA1, MD5)</li>
+                        <li class="list-group-item text-bg-dark">
+                            <b>IPv4</b> (глобальные адреса)
+                        </li>
+                        <li class="list-group-item text-bg-dark">
+                            <b>Hostname</b>
+                        </li>
+                        <li class="list-group-item text-bg-dark">
+                            <b>Domain</b>
+                        </li>
+                        <li class="list-group-item text-bg-dark">
+                            <b>Hash</b> (SHA256, SHA1, MD5)
+                        </li>
                     </ul>
                 </div>
                 <div class="col-md-4">

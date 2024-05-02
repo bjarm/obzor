@@ -2,6 +2,8 @@ import asyncio
 from django.shortcuts import render
 from django.core.cache import cache
 from django.conf import settings
+from django.views.generic.base import TemplateView
+from asgiref.sync import sync_to_async
 from plotly import express as px
 import pandas as pd
 from check.api_handlers import rdap_ip_handle
@@ -12,15 +14,27 @@ from check.services.alienvault_otx_module import AlienVaultOTXHandler
 from check.services.analysis_module import AnalysisModule
 
 
-def index(request):
-    return render(request, "check/index.html")
+class IndexView(TemplateView):
+    """View for index page"""
+
+    template_name = "check/index.html"
+
+
+@sync_to_async
+def get_user_is_authenticated_from_request(request):
+    """Function for workaround of (async + is_authenticated) issue"""
+    return request.user.is_authenticated
 
 
 async def search(request):
+    """View for search process"""
     indicator_input = request.POST.get("ioc_input")
     cached_result = cache.get(indicator_input)
 
     if cached_result:
+        cached_result.update(
+            {"is_authenticated": await get_user_is_authenticated_from_request(request)}
+        )
         return render(request, "check/result.html", cached_result)
     else:
         indicator = Indicator(indicator_input)
@@ -130,10 +144,15 @@ async def search(request):
 
                 cache.set(indicator_input, result, timeout=3600)
 
+        result.update(
+            {"is_authenticated": await get_user_is_authenticated_from_request(request)}
+        )
+
         return render(request, "check/result.html", result)
 
 
 def create_abuseipdb_chart(data):
+    """Function for creating chart of abuseipdb data"""
     df = pd.DataFrame(data)
     fig = px.bar(
         df,

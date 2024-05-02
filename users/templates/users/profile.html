@@ -1,0 +1,167 @@
+{% extends "check/base.html" %}
+{% load static %}
+{% block title %}
+    OBZOR - Профиль
+{% endblock title %}
+{% block css %}
+    <link rel="stylesheet"
+          type="text/css"
+          href="{% static 'css/users_styles.css' %}">
+{% endblock css %}
+{% block content %}
+    <div class="container-fluid text-white text-center">
+        <header class="mt-5">
+            <div class="row">
+                <h1 class="display-1">OBZOR</h1>
+            </div>
+        </header>
+        <main class="container">
+            <div class="row g-5 justify-content-md-center">
+                <div class="col-3"></div>
+                <div class="col-6">
+                    <div class="card text-bg-dark mt-5">
+                        <h5 class="card-header">Профиль</h5>
+                        <div class="card-body">
+                            <form class="needs-validation"
+                                  action="{% url 'users:profile' %}"
+                                  method="post">
+                                {% csrf_token %}
+                                <div class="row gx-3">
+                                    <div class="col">
+                                        <label for="{{ form.first_name.id_for_lable }}" class="form-label">Имя</label>
+                                        {{ form.first_name }}
+                                        <div class="invalid-feedback">Некорректный ввод</div>
+                                    </div>
+                                    <div class="col">
+                                        <label for="{{ form.last_name.id_for_lable }}" class="form-label">Фамилия</label>
+                                        {{ form.last_name }}
+                                        <div class="invalid-feedback">Некорректный ввод</div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col">
+                                        <label for="{{ form.username.id_for_lable }}" class="form-label">Логин</label>
+                                        <div class="input-group has-validation">
+                                            <span class="input-group-text">@</span>
+                                            {{ form.username }}
+                                            <div class="invalid-feedback">Некорректный ввод</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col">
+                                        <label for="{{ form.email.id_for_lable }}" class="form-label">Адрес электронной почты</label>
+                                        {{ form.email }}
+                                        <div class="invalid-feedback">Некорректный почтовый адрес</div>
+                                    </div>
+                                </div>
+                                <hr class="my-4">
+                                <div class="row g-3 mt-2">
+                                    <div class="col">
+                                        <button class="btn btn-main btn-lg" type="submit">Сохранить изменения</button>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-main btn-lg"
+                                                type="button"
+                                                onclick="document.location='{% url 'users:logout' %}'">
+                                            Выйти из аккаунта
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    {% if form.errors or messages %}
+                        {% if form.errors %}
+                            {% if form.errors.first_name %}
+                                {% for error in form.errors.first_name %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Имя" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if form.errors.last_name %}
+                                {% for error in form.errors.last_name %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Фамилия" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if form.errors.username %}
+                                {% for error in form.errors.last_name %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Логин" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if form.errors.email %}
+                                {% for error in form.errors.email %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Адрес электронной почты" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if form.errors.password1 %}
+                                {% for error in form.errors.password1 %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Пароль" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if form.errors.password2 %}
+                                {% for error in form.errors.password2 %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        Поле "Подтверждение пароля" — {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% elif messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-success alert-dismissible fade show mt-5"
+                                     role="alert">
+                                    {{ message }}
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock content %}
