@@ -1,7 +1,7 @@
 {% extends "check/base.html" %}
 {% load static %}
 {% block title %}
-    OBZOR - {{ indicator_type }} - {{ indicator }}
+    OBZOR - {{ indicator.type.name }} - {{ indicator.value }}
 {% endblock title %}
 {% block css %}
     <link rel="stylesheet"
@@ -11,888 +11,120 @@
           type="text/css"
           href="{% static 'css/datatables.min.css' %}">
 {% endblock css %}
-{% block body_onload %}
-    onload="PR.prettyPrint()"
-{% endblock body_onload %}
-{% block async_workaround %}
-    {% if is_authenticated %}
-        <button class="navbar-toggler btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
-                type="button"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvasNavbar"
-                aria-controls="offcanvasNavbar"
-                aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    {% else %}
-        <button class="btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
-                type="button"
-                onclick="document.location='{% url 'users:sign-in' %}'">Войти</button>
-    {% endif %}
-{% endblock async_workaround %}
 {% block content %}
     <div class="container-fluid mt-5">
-        {% if indicator_type == 'NOT_IOC' %}
-            <div class="text-white text-center">
-                <h3>Некорректный индикатор</h3>
-                <p>
-                    На данный момент <b>OBZOR</b> поддерживает следующие виды индикаторов: <b>IPv4</b>-адреса (глобальные), <b>домены</b> и <b>хеш-суммы</b> (SHA256, SHA1, MD5).
-                    <br>
-                    Перепроверьте ввод и попробуйте снова.
-                </p>
-            </div>
-        {% else %}
-            <div class="row">
-                <div class="col-md-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-bg-dark mb-3">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <button class="nav-link active">Сводка</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0">{% include "check/table-placeholder.html" with service_content="analysis-content" %}</div>
+                </div>
+                {% if indicator.type.name == 'IPv4' %}
                     <div class="card text-bg-dark mb-3">
                         <div class="card-header">
                             <ul class="nav nav-tabs card-header-tabs">
                                 <li class="nav-item">
-                                    <button class="nav-link active">Сводка</button>
+                                    <button class="nav-link active">Информация об IP из RDAP</button>
                                 </li>
                             </ul>
                         </div>
-                        <div class="card-body p-0">
-                            {% if indicator_type == 'IP' %}
-                                <table class="table table-hover table-borderless table-dark mt-1">
-                                    <tbody>
-                                        <tr>
-                                            {% if analysis_result.total_score >= 5 %}
-                                                <td>
-                                                    IP-адрес является <b>потенциально опасным</b>.
-                                                </td>
-                                            {% else %}
-                                                <td>
-                                                    IP-адрес <b>НЕ</b> является потенциально опасным.
-                                                </td>
-                                            {% endif %}
-                                        </tr>
-                                        {% if 'SCANNER' in analysis_result.categories %}
-                                            <tr>
-                                                <td>
-                                                    IP-адрес замечен в <b>массовом сканировании сети Интернет</b>.
-                                                </td>
-                                            </tr>
-                                        {% endif %}
-                                        {% if 'TOR' in analysis_result.categories %}
-                                            <tr>
-                                                <td>
-                                                    IP-адрес является <b>активной нодой сети TOR</b>.
-                                                </td>
-                                            </tr>
-                                        {% endif %}
-                                        {% if 'HOSTING' in analysis_result.categories %}
-                                            <tr>
-                                                <td>
-                                                    IP-адрес является <b>хостингом</b> или относится к <b>CDN</b>.
-                                                </td>
-                                            </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            {% elif indicator_type == 'DOMAIN' or indicator_type == 'HOSTNAME' %}
-                                <table class="table table-hover table-borderless table-dark mt-1">
-                                    <tbody>
-                                        <tr>
-                                            {% if analysis_result.total_score >= 5 %}
-                                                <td>
-                                                    Домен/хостнейм является <b>потенциально опасным</b>.
-                                                </td>
-                                            {% else %}
-                                                <td>
-                                                    Домен/хостнейм <b>НЕ</b> является потенциально опасным.
-                                                </td>
-                                            {% endif %}
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            {% elif indicator_type == 'HASH' %}
-                                <table class="table table-hover table-borderless table-dark mt-1">
-                                    <tbody>
-                                        <tr>
-                                            {% if analysis_result.total_score >= 5 %}
-                                                <td>
-                                                    Файл является <b>потенциально опасным</b>.
-                                                </td>
-                                            {% else %}
-                                                <td>
-                                                    Файл <b>НЕ</b> является потенциально опасным.
-                                                </td>
-                                            {% endif %}
-                                        </tr>
-                                        {% if analysis_result.kaspersky_result %}
-                                            <tr>
-                                                <td>Средствами АВПО Kaspersky данный файл определяется, как <b>{{ analysis_result.kaspersky_result }}</b></td>
-                                            </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            {% endif %}
-                        </div>
+                        <div class="card-body p-0" id="rdap-content">{% include "check/table-placeholder.html" %}</div>
                     </div>
-                    {% if indicator_type == 'IP' %}
-                        <div class="card text-bg-dark mb-3">
-                            <div class="card-header">
-                                <ul class="nav nav-tabs card-header-tabs">
-                                    <li class="nav-item">
-                                        <button class="nav-link active">Информация об IP из RDAP</button>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table table-hover table-borderless table-dark mt-1">
-                                    <tbody>
-                                        <tr>
-                                            <td>ASN:</td>
-                                            <td>AS{{ rdap_result.asn }} {{ rdap_result.asn_description }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Страна:</td>
-                                            <td>{{ rdap_result.asn_country_code }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>CIDR:</td>
-                                            <td>{{ rdap_result.asn_cidr }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Название провайдера:</td>
-                                            <td>{{ rdap_result.network_name }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>IP диапазон:</td>
-                                            <td>{{ rdap_result.network_start_address }} - {{ rdap_result.network_end_address }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Дата регистрации:</td>
-                                            <td>{{ rdap_result.registration }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Дата последнего обновления:</td>
-                                            <td>{{ rdap_result.last_changed }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <div class="accordion accordion-flush accordion-dark" id="rdapAccordion">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="rdapHeading">
-                                            <button class="accordion-button collapsed"
-                                                    type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#collapseRDAP"
-                                                    aria-expanded="false"
-                                                    aria-controls="collapseRDAP">Полный результат RDAP-запроса</button>
-                                        </h2>
-                                        <div id="collapseRDAP"
-                                             class="accordion-collapse collapse"
-                                             aria-labelledby="rdapHeading"
-                                             data-bs-parent="#rdapAccordion">
-                                            <div class="accordion-body">
-                                                <pre class="pre-scrollable prettyprint lang-js" id="rdapResult">{{ rdap_result.raw }}</pre>
-                                                <button type="button"
-                                                        class="btn btn-main btn-sm"
-                                                        id="copyButton"
-                                                        data-clipboard-target="#rdapResult">
-                                                    Скопировать в буфер обмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-8">
-                    <div class="card text-bg-dark mb-3">
-                        <div class="card-header">
-                            <ul class="nav nav-tabs card-header-tabs"
-                                id="resources-tab"
-                                role="tablist">
-                                {% if indicator_type == 'IP' %}
-                                    <li class="nav-item">
-                                        <button class="nav-link active"
-                                                id="abuseipdb-tab"
-                                                data-bs-toggle="tab"
-                                                data-bs-target="#abuseipdb-tab-pane"
-                                                role="tab"
-                                                aria-controls="abuseipdb-tab-pane"
-                                                aria-selected="true">AbuseIPDB</button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link"
-                                                id="virustotal-tab"
-                                                data-bs-toggle="tab"
-                                                data-bs-target="#virustotal-tab-pane"
-                                                role="tab"
-                                                aria-controls="virustotal"
-                                                aria-selected="false">VirusTotal</button>
-                                    </li>
-                                {% else %}
-                                    <li class="nav-item">
-                                        <button class="nav-link active"
-                                                id="virustotal-tab"
-                                                data-bs-toggle="tab"
-                                                data-bs-target="#virustotal-tab-pane"
-                                                role="tab"
-                                                aria-controls="virustotal"
-                                                aria-selected="true">VirusTotal</button>
-                                    </li>
-                                {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card text-bg-dark mb-3">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs"
+                            id="resources-tab"
+                            role="tablist">
+                            {% if indicator.type.name == 'IPv4' %}
+                                <li class="nav-item">
+                                    <button class="nav-link active"
+                                            id="abuseipdb-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#abuseipdb-tab-pane"
+                                            role="tab"
+                                            aria-controls="abuseipdb-tab-pane"
+                                            aria-selected="true">AbuseIPDB</button>
+                                </li>
                                 <li class="nav-item">
                                     <button class="nav-link"
-                                            id="alienvault-tab"
+                                            id="virustotal-tab"
                                             data-bs-toggle="tab"
-                                            data-bs-target="#alienvault-tab-pane"
+                                            data-bs-target="#virustotal-tab-pane"
                                             role="tab"
-                                            aria-controls="alienvault-tab-pane"
-                                            aria-selected="false">AlienVault OTX</button>
+                                            aria-controls="virustotal"
+                                            aria-selected="false">VirusTotal</button>
                                 </li>
-                            </ul>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="tab-content" id="nav-tabContent">
-                                {% if indicator_type == 'IP' %}
-                                    <div class="tab-pane fade show active"
-                                         id="abuseipdb-tab-pane"
-                                         role="tabpanel"
-                                         aria-labelledby="abuseipdb-tab"
-                                         tabindex="0">
-                                        {% if abuseipdb_result %}
-                                            <table class="table table-hover table-borderless table-dark mt-1">
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Рейтинг AbuseIPDB:</td>
-                                                        <td>{{ abuseipdb_result.abuse_confidence_score }}%</td>
-                                                    </tr>
-                                                    {% if abuseipdb_result.top_categories %}
-                                                        <tr>
-                                                            <td>Категории жалоб:</td>
-                                                            <td>{{ abuseipdb_result.top_categories }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    <tr>
-                                                        <td>Количество жалоб:</td>
-                                                        <td>{{ abuseipdb_result.total_reports }}</td>
-                                                    </tr>
-                                                    {% if abuseipdb_result.last_reported_at %}
-                                                        <tr>
-                                                            <td>Дата последней жалобы:</td>
-                                                            <td>{{ abuseipdb_result.last_reported_at }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    <tr>
-                                                        <td>Присутствует в белом списке AbuseIPDB:</td>
-                                                        <td>{{ abuseipdb_result.is_whitelisted|yesno:"Да,Нет" }}</td>
-                                                    </tr>
-                                                    {% if abuseipdb_result.usage_type %}
-                                                        <tr>
-                                                            <td>Тип использования:</td>
-                                                            <td>{{ abuseipdb_result.usage_type }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if abuseipdb_result.hostnames %}
-                                                        <tr>
-                                                            <td>Названия хоста:</td>
-                                                            <td>{{ abuseipdb_result.hostnames }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if abuseipdb_result.domain %}
-                                                        <tr>
-                                                            <td>Домен:</td>
-                                                            <td>{{ abuseipdb_result.domain }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if abuseipdb_result.is_tor %}
-                                                        <tr>
-                                                            <td>Принадлежит сети TOR:</td>
-                                                            <td>{{ abuseipdb_result.is_tor }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                </tbody>
-                                            </table>
-                                            {% if abuseipdb_figure %}{{ abuseipdb_figure|safe }}{% endif %}
-                                        {% else %}
-                                            <table class="table table-hover table-bordered table-dark mb-0">
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Данные отсутствуют</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        {% endif %}
-                                    </div>
-                                    <div class="tab-pane fade"
-                                         id="virustotal-tab-pane"
-                                         role="tabpanel"
-                                         aria-labelledby="virustotal-tab"
-                                         tabindex="0">
-                                        {% if vt_result %}
-                                            {% if indicator_type == 'IP' %}
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Пользовательский рейтинг:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% elif indicator_type == 'DOMAIN' or indicator_type == 'HOSTNAME' %}
-                                                <!-- Карточка VT для домена -->
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Репутация:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Регистратор:</td>
-                                                            <td>{{ vt_result.registrar }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации о домене:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% elif indicator_type == 'HASH' %}
-                                                <!-- Карточка VT для хеша -->
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Репутация:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Расширение:</td>
-                                                            <td>{{ vt_result.type_extension }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Описание типа:</td>
-                                                            <td>{{ vt_result.type_description }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Теги типа:</td>
-                                                            <td>{{ vt_result.type_tags }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Magic:</td>
-                                                            <td>{{ vt_result.magic }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Все имена файла:</td>
-                                                            <td>{{ vt_result.names }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Имя файла:</td>
-                                                            <td>{{ vt_result.meaningful_name }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Размер файла:</td>
-                                                            <td>{{ vt_result.size }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>MD5:</td>
-                                                            <td>{{ vt_result.md5 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>SHA1:</td>
-                                                            <td>{{ vt_result.sha1 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>SHA256:</td>
-                                                            <td class="td_value">{{ vt_result.sha256 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации о файле:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% endif %}
-                                        {% else %}
-                                            <table class="table table-hover table-borderless table-dark">
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Данные отсутствуют</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <div class="tab-pane fade show active"
-                                         id="virustotal-tab-pane"
-                                         role="tabpanel"
-                                         aria-labelledby="virustotal-tab"
-                                         tabindex="0">
-                                        {% if vt_result %}
-                                            {% if indicator_type == 'IP' %}
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Репутация:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации об IP:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% elif indicator_type == 'DOMAIN' or indicator_type == 'HOSTNAME' %}
-                                                <!-- Карточка VT для домена -->
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Репутация:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Регистратор:</td>
-                                                            <td>{{ vt_result.registrar }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации о домене:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% elif indicator_type == 'HASH' %}
-                                                <!-- Карточка VT для хеша -->
-                                                <table class="table table-hover table-borderless table-dark mt-1">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Показатель выявления вредоносов:</td>
-                                                            <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Репутация:</td>
-                                                            <td>{{ vt_result.reputation }}</td>
-                                                        </tr>
-                                                        {% if vt_result.tags %}
-                                                            <tr>
-                                                                <td>Теги:</td>
-                                                                <td>{{ vt_result.tags }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Расширение:</td>
-                                                            <td>{{ vt_result.type_extension }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Описание типа:</td>
-                                                            <td>{{ vt_result.type_description }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Теги типа:</td>
-                                                            <td>{{ vt_result.type_tags }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Magic:</td>
-                                                            <td>{{ vt_result.magic }}</td>
-                                                        </tr>
-                                                        {% if vt_result.names %}
-                                                            <tr>
-                                                                <td>Все имена файла:</td>
-                                                                <td>{{ vt_result.names }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        {% if vt_result.meaningful_name %}
-                                                            <tr>
-                                                                <td>Имя файла:</td>
-                                                                <td>{{ vt_result.meaningful_name }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                        <tr>
-                                                            <td>Размер файла:</td>
-                                                            <td>{{ vt_result.size }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>MD5:</td>
-                                                            <td>{{ vt_result.md5 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>SHA1:</td>
-                                                            <td>{{ vt_result.sha1 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>SHA256:</td>
-                                                            <td class="td_value">{{ vt_result.sha256 }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата последнего анализа:</td>
-                                                            <td>{{ vt_result.last_analysis_date }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Дата изменения информации о файле:</td>
-                                                            <td>{{ vt_result.last_modification_date }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            {% endif %}
-                                        {% else %}
-                                            <table class="table table-hover table-borderless table-dark">
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Данные отсутствуют</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                                <div class="tab-pane fade"
-                                     id="alienvault-tab-pane"
+                            {% else %}
+                                <li class="nav-item">
+                                    <button class="nav-link active"
+                                            id="virustotal-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#virustotal-tab-pane"
+                                            role="tab"
+                                            aria-controls="virustotal"
+                                            aria-selected="true">VirusTotal</button>
+                                </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <button class="nav-link"
+                                        id="alienvault-tab"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#alienvault-tab-pane"
+                                        role="tab"
+                                        aria-controls="alienvault-tab-pane"
+                                        aria-selected="false">AlienVault OTX</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tab-content" id="nav-tabContent">
+                            {% if indicator.type.name == 'IPv4' %}
+                                <div class="tab-pane fade show active"
+                                     id="abuseipdb-tab-pane"
                                      role="tabpanel"
-                                     aria-labelledby="alienvault-tab"
+                                     aria-labelledby="abuseipdb-tab"
                                      tabindex="0">
-                                    {% if alienvault_result %}
-                                        {% if indicator_type == 'IP' %}
-                                            <table class="table table-hover table-borderless table-dark mt-1">
-                                                <tbody>
-                                                    {% if alienvault_result.tags %}
-                                                        <tr>
-                                                            <td>Теги:</td>
-                                                            <td>{{ alienvault_result.tags }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.adversaries %}
-                                                        <tr>
-                                                            <td>Субъекты угрозы:</td>
-                                                            <td>{{ alienvault_result.adversaries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.malware_families %}
-                                                        <tr>
-                                                            <td>Семейства ВПО:</td>
-                                                            <td>{{ alienvault_result.malware_families }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.industries %}
-                                                        <tr>
-                                                            <td>Цели:</td>
-                                                            <td>{{ alienvault_result.industries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    <tr>
-                                                        <td>Количество доменных имен:</td>
-                                                        <td>{{ alienvault_result.passive_dns_count }}</td>
-                                                    </tr>
-                                                    {% if alienvault_result.passive_dns %}
-                                                        <tr>
-                                                            <td colspan="2">
-                                                                <table id="example"
-                                                                       class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>IP Address</th>
-                                                                            <th>First Seen</th>
-                                                                            <th>Last Seen</th>
-                                                                            <th>Hostname</th>
-                                                                            <th>Record Type</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {% for record in alienvault_result.passive_dns %}
-                                                                            <tr>
-                                                                                <td>{{ record.address }}</td>
-                                                                                <td>{{ record.first }}</td>
-                                                                                <td>{{ record.last }}</td>
-                                                                                <td>{{ record.hostname }}</td>
-                                                                                <td>{{ record.record_type }}</td>
-                                                                            </tr>
-                                                                        {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    {% endif %}
-                                                </tbody>
-                                            </table>
-                                        {% elif indicator_type == 'HOSTNAME' %}
-                                            <table class="table table-hover table-borderless table-dark mt-1">
-                                                <tbody>
-                                                    {% if alienvault_result.tags %}
-                                                        <tr>
-                                                            <td>Теги:</td>
-                                                            <td>{{ alienvault_result.tags }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.adversaries %}
-                                                        <tr>
-                                                            <td>Субъекты угрозы:</td>
-                                                            <td>{{ alienvault_result.adversaries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.malware_families %}
-                                                        <tr>
-                                                            <td>Семейства ВПО:</td>
-                                                            <td>{{ alienvault_result.malware_families }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.industries %}
-                                                        <tr>
-                                                            <td>Цели:</td>
-                                                            <td>{{ alienvault_result.industries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    <tr>
-                                                        <td>Количество DNS-записей:</td>
-                                                        <td>{{ alienvault_result.passive_dns_count }}</td>
-                                                    </tr>
-                                                    {% if alienvault_result.passive_dns %}
-                                                        <tr>
-                                                            <td colspan="2">
-                                                                <table id="example"
-                                                                       class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>IP Address</th>
-                                                                            <th>First Seen</th>
-                                                                            <th>Last Seen</th>
-                                                                            <th>Hostname</th>
-                                                                            <th>Record Type</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {% for record in alienvault_result.passive_dns %}
-                                                                            <tr>
-                                                                                <td>{{ record.address }}</td>
-                                                                                <td>{{ record.first }}</td>
-                                                                                <td>{{ record.last }}</td>
-                                                                                <td>{{ record.hostname }}</td>
-                                                                                <td>{{ record.record_type }}</td>
-                                                                            </tr>
-                                                                        {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    {% endif %}
-                                                </tbody>
-                                            </table>
-                                        {% elif indicator_type == 'DOMAIN' %}
-                                            <table class="table table-hover table-borderless table-dark mt-1">
-                                                <tbody>
-                                                    {% if alienvault_result.tags %}
-                                                        <tr>
-                                                            <td>Теги:</td>
-                                                            <td>{{ alienvault_result.tags }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.adversaries %}
-                                                        <tr>
-                                                            <td>Субъекты угрозы:</td>
-                                                            <td>{{ alienvault_result.adversaries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.malware_families %}
-                                                        <tr>
-                                                            <td>Семейства ВПО:</td>
-                                                            <td>{{ alienvault_result.malware_families }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.industries %}
-                                                        <tr>
-                                                            <td>Цели:</td>
-                                                            <td>{{ alienvault_result.industries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    <tr>
-                                                        <td>Количество DNS-записей:</td>
-                                                        <td>{{ alienvault_result.passive_dns_count }}</td>
-                                                    </tr>
-                                                    {% if alienvault_result.passive_dns %}
-                                                        <tr>
-                                                            <td colspan="2">
-                                                                <table id="example"
-                                                                       class="table table-hover table-borderless table-dark table-fixed caption-top mt-1">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>IP Address</th>
-                                                                            <th>First Seen</th>
-                                                                            <th>Last Seen</th>
-                                                                            <th>Hostname</th>
-                                                                            <th>Record Type</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {% for record in alienvault_result.passive_dns %}
-                                                                            <tr>
-                                                                                <td>{{ record.address }}</td>
-                                                                                <td>{{ record.first }}</td>
-                                                                                <td>{{ record.last }}</td>
-                                                                                <td class="td_value">{{ record.hostname }}</td>
-                                                                                <td>{{ record.record_type }}</td>
-                                                                            </tr>
-                                                                        {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    {% endif %}
-                                                </tbody>
-                                            </table>
-                                        {% elif indicator_type == 'HASH' %}
-                                            <table class="table table-hover table-borderless table-dark mt-1">
-                                                <tbody>
-                                                    {% if alienvault_result.tags %}
-                                                        <tr>
-                                                            <td>Теги:</td>
-                                                            <td>{{ alienvault_result.tags }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.adversaries %}
-                                                        <tr>
-                                                            <td>Субъекты угрозы:</td>
-                                                            <td>{{ alienvault_result.adversaries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.malware_families %}
-                                                        <tr>
-                                                            <td>Семейства ВПО:</td>
-                                                            <td>{{ alienvault_result.malware_families }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.industries %}
-                                                        <tr>
-                                                            <td>Цели:</td>
-                                                            <td>{{ alienvault_result.industries }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.md5 %}
-                                                        <tr>
-                                                            <td>MD5:</td>
-                                                            <td>{{ alienvault_result.md5 }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.sha1 %}
-                                                        <tr>
-                                                            <td>SHA1:</td>
-                                                            <td>{{ alienvault_result.sha1 }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.sha256 %}
-                                                        <tr>
-                                                            <td>SHA256:</td>
-                                                            <td class="td_value">{{ alienvault_result.sha256 }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.filesize %}
-                                                        <tr>
-                                                            <td>Размер файла:</td>
-                                                            <td>{{ alienvault_result.filesize }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.file_type %}
-                                                        <tr>
-                                                            <td>Тип файла:</td>
-                                                            <td>{{ alienvault_result.file_type }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.metaextract_urls %}
-                                                        <tr>
-                                                            <td>Взаимодействует с URL:</td>
-                                                            <td>{{ alienvault_result.metaextract_urls }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% if alienvault_result.metaextract_ips %}
-                                                        <tr>
-                                                            <td>Взаимодействует с IP:</td>
-                                                            <td>{{ alienvault_result.metaextract_ips }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                </tbody>
-                                            </table>
-                                        {% endif %}
-                                    {% else %}
-                                        <table class="table table-hover table-borderless table-dark">
-                                            <tbody>
-                                                <tr>
-                                                    <td>Данные отсутствуют</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    {% endif %}
+                                    {% include "check/table-placeholder.html" with service_content="abuseipdb-content" %}
                                 </div>
+                                <div class="tab-pane fade"
+                                     id="virustotal-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="virustotal-tab"
+                                     tabindex="0">
+                                    {% include "check/table-placeholder.html" with service_content="virustotal-content" %}
+                                </div>
+                            {% else %}
+                                <div class="tab-pane fade show active"
+                                     id="virustotal-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="virustotal-tab"
+                                     tabindex="0">
+                                    {% include "check/table-placeholder.html" with service_content="virustotal-content" %}
+                                </div>
+                            {% endif %}
+                            <div class="tab-pane fade"
+                                 id="alienvault-tab-pane"
+                                 role="tabpanel"
+                                 aria-labelledby="alienvault-tab"
+                                 tabindex="0">
+                                {% include "check/table-placeholder.html" with service_content="alienvault-otx-content" %}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        {% endif %}
+        </div>
     </div>
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    {% block toasts %}
         <div id="copyToast"
              class="toast align-items-center text-bg-dark w-auto"
              role="alert"
@@ -906,11 +138,123 @@
                         aria-label="Close"></button>
             </div>
         </div>
-    </div>
+    {% endblock toasts %}
 {% endblock content %}
 {% block scripts %}
     <script src="{% static 'js/prettify.js' %}"></script>
     <script src="{% static 'js/clipboard.min.js' %}"></script>
     <script src="{% static 'js/datatables.js' %}"></script>
-    <script src="{% static 'js/copy.js' %}"></script>
+    {% if indicator.type.name == 'IPv4' %}
+        <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '{% url "check:get-rdap" %}',
+                type: 'GET',
+                data: { 'indicator': '{{ indicator.value }}' },
+                success: function (data) {
+                    $('#rdap-content').html(data);
+                    initializeCopyButton();
+                    PR.prettyPrint()
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+        </script>
+    {% endif %}
+    {% if indicator.type.name == 'IPv4' %}
+        <script>
+            $(document).ready(function () {
+                var abuse_promise = $.ajax({
+                    url: '{% url "check:get-abuse" %}',
+                    type: 'GET',
+                    data: { 'indicator': '{{ indicator.value }}' },
+                    success: function (data) {
+                        $('#abuseipdb-content').html(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+                var vt_promise =$.ajax({
+                    url: '{% url "check:get-vt" %}',
+                    type: 'GET',
+                    data: { 'indicator': '{{ indicator.value }}' },
+                    success: function (data) {
+                        $('#virustotal-content').html(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+                var avotx_promise =$.ajax({
+                    url: '{% url "check:get-av-otx" %}',
+                    type: 'GET',
+                    data: { 'indicator': '{{ indicator.value }}' },
+                    success: function (data) {
+                        $('#alienvault-otx-content').html(data);
+                        createDatatable();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);    
+                    }
+                });
+                $.when(abuse_promise, vt_promise, avotx_promise).done(function(){
+                    $.ajax({
+                        url: '{% url "check:get-analysis" %}',
+                        type: 'GET',
+                        data: { 'indicator': '{{ indicator.value }}' },
+                        success: function (data) {
+                            $('#analysis-content').html(data);
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+            });
+        </script>
+    {% else %}
+        <script>
+            $(document).ready(function () {
+                var vt_promise =$.ajax({
+                    url: '{% url "check:get-vt" %}',
+                    type: 'GET',
+                    data: { 'indicator': '{{ indicator.value }}' },
+                    success: function (data) {
+                        $('#virustotal-content').html(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+                var avotx_promise =$.ajax({
+                    url: '{% url "check:get-av-otx" %}',
+                    type: 'GET',
+                    data: { 'indicator': '{{ indicator.value }}' },
+                    success: function (data) {
+                        $('#alienvault-otx-content').html(data);
+                        createDatatable();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);    
+                    }
+                });
+                $.when( vt_promise, avotx_promise).done(function(){
+                    $.ajax({
+                        url: '{% url "check:get-analysis" %}',
+                        type: 'GET',
+                        data: { 'indicator': '{{ indicator.value }}' },
+                        success: function (data) {
+                            $('#analysis-content').html(data);
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+            });
+        </script>
+    {% endif %}
 {% endblock scripts %}

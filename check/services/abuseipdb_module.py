@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 import tomllib
 from aiohttp import ClientSession
+import requests
 from check.utils import format_iso_date
 from check.services.service_module import ServiceHandler
 
@@ -160,12 +161,29 @@ class AbuseIPDBData:
 class AbuseIPDBHandler(ServiceHandler):
     """Handler for interactions with AbuseIPDB"""
 
-    async def get_ip_data(self, address) -> AbuseIPDBData:
+    def get_ip_data(self, address) -> AbuseIPDBData:
         """Get data for indicator from AbuseIPDB"""
 
         headers = {"accept": "application/json", "key": self._key}
         querystring = {
-            "ipAddress": address.as_a_string,
+            "ipAddress": address,
+            "verbose": "True",
+            "maxAgeInDays": 365,
+        }
+        url = "https://api.abuseipdb.com/api/v2/check"
+
+        response = requests.get(url=url, headers=headers, params=querystring)
+
+        data = AbuseIPDBData.from_json(response.json().get("data"))
+
+        return data
+
+    async def get_ip_data_async(self, address) -> AbuseIPDBData:
+        """Get data for indicator from AbuseIPDB"""
+
+        headers = {"accept": "application/json", "key": self._key}
+        querystring = {
+            "ipAddress": address,
             "verbose": "True",
             "maxAgeInDays": 365,
         }

@@ -1,0 +1,77 @@
+{% if indicator_type == 'IPv4' %}
+    <table class="table table-hover table-borderless table-dark mt-1">
+        <tbody>
+            <tr>
+                {% if analysis_result.total_score >= 5 %}
+                    <td>
+                        IP-адрес является <b>потенциально опасным</b>.
+                    </td>
+                {% else %}
+                    <td>
+                        IP-адрес <b>НЕ</b> является потенциально опасным.
+                    </td>
+                {% endif %}
+            </tr>
+            {% if 'SCANNER' in analysis_result.categories %}
+                <tr>
+                    <td>
+                        IP-адрес замечен в <b>массовом сканировании сети Интернет</b>.
+                    </td>
+                </tr>
+            {% endif %}
+            {% if 'TOR' in analysis_result.categories %}
+                <tr>
+                    <td>
+                        IP-адрес является <b>активной нодой сети TOR</b>.
+                    </td>
+                </tr>
+            {% endif %}
+            {% if 'HOSTING' in analysis_result.categories %}
+                <tr>
+                    <td>
+                        IP-адрес является <b>хостингом</b> или относится к <b>CDN</b>.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% elif indicator_type == 'Domain' or indicator_type == 'Hostname' %}
+    <table class="table table-hover table-borderless table-dark mt-1">
+        <tbody>
+            <tr>
+                {% if analysis_result.total_score >= 5 %}
+                    <td>
+                        Домен/хостнейм является <b>потенциально опасным</b>.
+                    </td>
+                {% else %}
+                    <td>
+                        Домен/хостнейм <b>НЕ</b> является потенциально опасным.
+                    </td>
+                {% endif %}
+            </tr>
+        </tbody>
+    </table>
+{% elif indicator_type == 'Hash' %}
+    <table class="table table-hover table-borderless table-dark mt-1">
+        <tbody>
+            <tr>
+                {% if analysis_result.total_score >= 5 %}
+                    <td>
+                        Файл является <b>потенциально опасным</b>.
+                    </td>
+                {% else %}
+                    <td>
+                        Файл <b>НЕ</b> является потенциально опасным.
+                    </td>
+                {% endif %}
+            </tr>
+            {% if analysis_result.kaspersky_result %}
+                <tr>
+                    <td>
+                        Средствами АВПО Kaspersky данный файл определяется, как <b>{{ analysis_result.kaspersky_result }}</b>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endif %}

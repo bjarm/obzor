@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from aiohttp import ClientSession
+import requests
 from check.utils import format_iso_date
 from check.services.service_module import ServiceHandler
 
@@ -441,7 +442,90 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
 class AlienVaultOTXHandler(ServiceHandler):
     """Handler for interactions with AlienVault OTX"""
 
-    async def get_ip_data(self, address) -> AlienVaultOTXIPData:
+    def get_ip_data(self, address) -> AlienVaultOTXIPData:
+        """Get IP data for indicator from AlienVault OTX"""
+
+        headers = {"accept": "application/json", "x-otx-api-key": self._key}
+        general_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/IPv4/{address}/general/"
+        )
+        pdns_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/IPv4/{address}/passive_dns/"
+        )
+
+        with requests.Session() as session:
+            general_response = session.get(url=general_url, headers=headers)
+            pdns_response = session.get(url=pdns_url, headers=headers)
+
+        data = AlienVaultOTXIPData.from_json(
+            general_response.json(), pdns_response.json()
+        )
+        print(data)
+
+        return data
+
+    def get_hostname_data(self, hostname) -> AlienVaultOTXHostnameData:
+        """Get hostname data for indicator from AlienVault OTX"""
+
+        headers = {"accept": "application/json", "x-otx-api-key": self._key}
+        general_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/hostname/{hostname}/general/"
+        )
+        pdns_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{hostname}/passive_dns/"
+
+        with requests.Session() as session:
+            general_response = session.get(url=general_url, headers=headers)
+            pdns_response = session.get(url=pdns_url, headers=headers)
+
+        data = AlienVaultOTXIPData.from_json(
+            general_response.json(), pdns_response.json()
+        )
+
+        return data
+
+    def get_domain_data(self, domain) -> AlienVaultOTXDomainData:
+        """Get domain data for indicator from AlienVault OTX"""
+
+        headers = {"accept": "application/json", "x-otx-api-key": self._key}
+        general_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/general/"
+        )
+        pdns_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/passive_dns/"
+        )
+
+        with requests.Session() as session:
+            general_response = session.get(url=general_url, headers=headers)
+            pdns_response = session.get(url=pdns_url, headers=headers)
+
+        data = AlienVaultOTXIPData.from_json(
+            general_response.json(), pdns_response.json()
+        )
+
+        return data
+
+    def get_file_data(self, file) -> AlienVaultOTXFileData:
+        """Get file data for indicator from AlienVault OTX"""
+
+        headers = {"accept": "application/json", "x-otx-api-key": self._key}
+        general_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/file/{file}/general/"
+        )
+        analysis_url = (
+            f"https://otx.alienvault.com/api/v1/indicators/file/{file}/analysis/"
+        )
+
+        with requests.Session() as session:
+            general_response = session.get(url=general_url, headers=headers)
+            analysis_response = session.get(url=analysis_url, headers=headers)
+
+        data = AlienVaultOTXFileData.from_json(
+            general_response.json(), analysis_response.json()
+        )
+
+        return data
+
+    async def get_ip_data_async(self, address) -> AlienVaultOTXIPData:
         """Get IP data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -450,17 +534,17 @@ class AlienVaultOTXHandler(ServiceHandler):
             base_url="https://otx.alienvault.com", headers=headers
         ) as session:
             general_response = await self._fetch(
-                session, f"/api/v1/indicators/IPv4/{address.as_a_string}/general/"
+                session, f"/api/v1/indicators/IPv4/{address}/general/"
             )
             passive_dns_response = await self._fetch(
-                session, f"/api/v1/indicators/IPv4/{address.as_a_string}/passive_dns/"
+                session, f"/api/v1/indicators/IPv4/{address}/passive_dns/"
             )
 
         data = AlienVaultOTXIPData.from_json(general_response, passive_dns_response)
 
         return data
 
-    async def get_hostname_data(self, hostname) -> AlienVaultOTXHostnameData:
+    async def get_hostname_data_async(self, hostname) -> AlienVaultOTXHostnameData:
         """Get hostname data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -469,11 +553,11 @@ class AlienVaultOTXHandler(ServiceHandler):
             base_url="https://otx.alienvault.com", headers=headers
         ) as session:
             general_response = await self._fetch(
-                session, f"/api/v1/indicators/hostname/{hostname.as_a_string}/general/"
+                session, f"/api/v1/indicators/hostname/{hostname}/general/"
             )
             passive_dns_response = await self._fetch(
                 session,
-                f"/api/v1/indicators/hostname/{hostname.as_a_string}/passive_dns/",
+                f"/api/v1/indicators/hostname/{hostname}/passive_dns/",
             )
 
         data = AlienVaultOTXHostnameData.from_json(
@@ -482,7 +566,7 @@ class AlienVaultOTXHandler(ServiceHandler):
 
         return data
 
-    async def get_domain_data(self, domain) -> AlienVaultOTXDomainData:
+    async def get_domain_data_async(self, domain) -> AlienVaultOTXDomainData:
         """Get domain data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -491,17 +575,17 @@ class AlienVaultOTXHandler(ServiceHandler):
             base_url="https://otx.alienvault.com", headers=headers
         ) as session:
             general_response = await self._fetch(
-                session, f"/api/v1/indicators/domain/{domain.as_a_string}/general/"
+                session, f"/api/v1/indicators/domain/{domain}/general/"
             )
             passive_dns_response = await self._fetch(
-                session, f"/api/v1/indicators/domain/{domain.as_a_string}/passive_dns/"
+                session, f"/api/v1/indicators/domain/{domain}/passive_dns/"
             )
 
         data = AlienVaultOTXDomainData.from_json(general_response, passive_dns_response)
 
         return data
 
-    async def get_file_data(self, file) -> AlienVaultOTXFileData:
+    async def get_file_data_async(self, file) -> AlienVaultOTXFileData:
         """Get file data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -510,10 +594,10 @@ class AlienVaultOTXHandler(ServiceHandler):
             base_url="https://otx.alienvault.com", headers=headers
         ) as session:
             general_response = await self._fetch(
-                session, f"/api/v1/indicators/file/{file.as_a_string}/general/"
+                session, f"/api/v1/indicators/file/{file}/general/"
             )
             analysis_response = await self._fetch(
-                session, f"/api/v1/indicators/file/{file.as_a_string}/analysis/"
+                session, f"/api/v1/indicators/file/{file}/analysis/"
             )
 
         data = AlienVaultOTXFileData.from_json(general_response, analysis_response)

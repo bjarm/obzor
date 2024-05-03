@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from aiohttp import ClientSession
+import requests
 from check.utils import format_timestamp
 from check.services.service_module import ServiceHandler
 
@@ -260,7 +261,43 @@ class VirusTotalFileData(VirusTotalData):
 class VirusTotalHandler(ServiceHandler):
     """Handler for interactions with VirusTotal"""
 
-    async def get_ip_data(self, address) -> VirusTotalData:
+    def get_ip_data(self, address) -> VirusTotalIPData:
+        """Get IP data for indicator from VirusTotal"""
+
+        headers = {"accept": "application/json", "x-apikey": self._key}
+        url = f"https://www.virustotal.com/api/v3/ip_addresses/{address}"
+
+        response = requests.get(url=url, headers=headers)
+
+        data = VirusTotalIPData.from_json(response.json().get("data"))
+
+        return data
+
+    def get_domain_data(self, domain) -> VirusTotalDomainData:
+        """Get domain/hostname data for indicator from VirusTotal"""
+
+        headers = {"accept": "application/json", "x-apikey": self._key}
+        url = f"https://www.virustotal.com/api/v3/domains/{domain}"
+
+        response = requests.get(url=url, headers=headers)
+
+        data = VirusTotalDomainData.from_json(response.json().get("data"))
+
+        return data
+
+    def get_file_data(self, file) -> VirusTotalFileData:
+        """Get file data for indicator from VirusTotal"""
+
+        headers = {"accept": "application/json", "x-apikey": self._key}
+        url = f"https://www.virustotal.com/api/v3/files/{file}"
+
+        response = requests.get(url=url, headers=headers)
+
+        data = VirusTotalFileData.from_json(response.json().get("data"))
+
+        return data
+
+    async def get_ip_data_async(self, address) -> VirusTotalIPData:
         """Get IP data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
@@ -268,15 +305,13 @@ class VirusTotalHandler(ServiceHandler):
         async with ClientSession(
             base_url="https://www.virustotal.com", headers=headers
         ) as session:
-            response = await self._fetch(
-                session, f"/api/v3/ip_addresses/{address.as_a_string}"
-            )
+            response = await self._fetch(session, f"/api/v3/ip_addresses/{address}")
 
         data = VirusTotalIPData.from_json(response.get("data"))
 
         return data
 
-    async def get_domain_data(self, domain) -> VirusTotalData:
+    async def get_domain_data_async(self, domain) -> VirusTotalDomainData:
         """Get domain/hostname data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
@@ -284,15 +319,13 @@ class VirusTotalHandler(ServiceHandler):
         async with ClientSession(
             base_url="https://www.virustotal.com", headers=headers
         ) as session:
-            response = await self._fetch(
-                session, f"/api/v3/domains/{domain.as_a_string}"
-            )
+            response = await self._fetch(session, f"/api/v3/domains/{domain}")
 
         data = VirusTotalDomainData.from_json(response.get("data"))
 
         return data
 
-    async def get_file_data(self, file) -> VirusTotalData:
+    async def get_file_data_async(self, file) -> VirusTotalFileData:
         """Get file data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
@@ -300,7 +333,7 @@ class VirusTotalHandler(ServiceHandler):
         async with ClientSession(
             base_url="https://www.virustotal.com", headers=headers
         ) as session:
-            response = await self._fetch(session, f"/api/v3/files/{file.as_a_string}")
+            response = await self._fetch(session, f"/api/v3/files/{file}")
 
         data = VirusTotalFileData.from_json(response.get("data"))
 

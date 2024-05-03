@@ -28,7 +28,7 @@
         <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}">
         <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
     </head>
-    <body class="bg-dark" {% block body_onload %}{% endblock body_onload %}>
+    <body class="bg-dark">
         <!-- Навигационная панель -->
         <nav class="navbar navbar-dark bg-dark fixed-top p-0">
             <form class="container-fluid border-bottom border-2 border-secondary p-0"
@@ -46,25 +46,23 @@
                     <input class="form-control text-bg-dark border border-2 border-top-0 border-bottom-0 border-secondary"
                            type="search"
                            name="ioc_input"
-                           value="{{ indicator }}">
+                           id="check-content">
                     <button class="btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
                             type="submit">Поиск</button>
-                    {% block async_workaround %}
-                        {% if user.is_authenticated %}
-                            <button class="navbar-toggler btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
-                                    type="button"
-                                    data-bs-toggle="offcanvas"
-                                    data-bs-target="#offcanvasNavbar"
-                                    aria-controls="offcanvasNavbar"
-                                    aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                        {% else %}
-                            <button class="btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
-                                    type="button"
-                                    onclick="document.location='{% url 'users:sign-in' %}'">Войти</button>
-                        {% endif %}
-                    {% endblock async_workaround %}
+                    {% if user.is_authenticated %}
+                        <button class="navbar-toggler btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
+                                type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#offcanvasNavbar"
+                                aria-controls="offcanvasNavbar"
+                                aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                    {% else %}
+                        <button class="btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
+                                type="button"
+                                onclick="document.location='{% url 'users:sign-in' %}'">Войти</button>
+                    {% endif %}
                 </div>
             </form>
             <div class="offcanvas offcanvas-end text-bg-dark"
@@ -95,7 +93,47 @@
         </nav>
         {% block content %}
         {% endblock content %}
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            {% block toasts %}
+            {% endblock toasts %}
+            {% if form.errors %}
+                {% if form.errors.value %}
+                    {% for error in form.errors.value %}
+                        <div id="formErrorToast"
+                             class="toast align-items-center text-bg-danger w-auto"
+                             role="alert"
+                             aria-live="assertive"
+                             aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body">{{ error }}</div>
+                                <button type="button"
+                                        class="btn-close me-2 m-auto"
+                                        data-bs-dismiss="toast"
+                                        aria-label="Close"></button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+        </div>
         <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+        <script src="{% static 'js/common.js' %}"></script>
+        <script>
+            $(document).ready(function () {
+                $.ajax({
+                    url: '{% url "search" %}',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#check-content').replaceWith(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+                showFormErrorToast();
+            });
+        </script>
         {% block scripts %}
         {% endblock scripts %}
     </body>

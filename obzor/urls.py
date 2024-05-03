@@ -18,11 +18,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from check.views import IndexView, search
+from check.views import SearchView, IndexView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", IndexView.as_view(), name="index"),
-    path("search/", search, name="search"),
+    path("search/", SearchView.as_view(), name="search"),
     path("", include("users.urls", namespace="users")),
+    path("check/", include("check.urls", namespace="check")),
 ]

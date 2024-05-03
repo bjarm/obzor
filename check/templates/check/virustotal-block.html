@@ -1,0 +1,133 @@
+{% if vt_result %}
+    {% if indicator_type == 'IPv4' %}
+        <table class="table table-hover table-borderless table-dark mt-1">
+            <tbody>
+                <tr>
+                    <td>Показатель выявления вредоносов:</td>
+                    <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                </tr>
+                <tr>
+                    <td>Пользовательский рейтинг:</td>
+                    <td>{{ vt_result.reputation }}</td>
+                </tr>
+                {% if vt_result.tags %}
+                    <tr>
+                        <td>Теги:</td>
+                        <td>{{ vt_result.tags }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Дата последнего анализа:</td>
+                    <td>{{ vt_result.last_analysis_date }}</td>
+                </tr>
+            </tbody>
+        </table>
+    {% elif indicator_type == 'Domain' or indicator_type == 'Hostname' %}
+        <table class="table table-hover table-borderless table-dark mt-1">
+            <tbody>
+                <tr>
+                    <td>Показатель выявления вредоносов:</td>
+                    <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                </tr>
+                <tr>
+                    <td>Репутация:</td>
+                    <td>{{ vt_result.reputation }}</td>
+                </tr>
+                {% if vt_result.tags %}
+                    <tr>
+                        <td>Теги:</td>
+                        <td>{{ vt_result.tags }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Регистратор:</td>
+                    <td>{{ vt_result.registrar }}</td>
+                </tr>
+                <tr>
+                    <td>Дата последнего анализа:</td>
+                    <td>{{ vt_result.last_analysis_date }}</td>
+                </tr>
+                <tr>
+                    <td>Дата изменения информации о домене:</td>
+                    <td>{{ vt_result.last_modification_date }}</td>
+                </tr>
+            </tbody>
+        </table>
+    {% elif indicator_type == 'Hash' %}
+        <table class="table table-hover table-borderless table-dark mt-1">
+            <tbody>
+                <tr>
+                    <td>Показатель выявления вредоносов:</td>
+                    <td>{{ vt_result.engine_malicious }}/{{ vt_result.engine_count }}</td>
+                </tr>
+                <tr>
+                    <td>Репутация:</td>
+                    <td>{{ vt_result.reputation }}</td>
+                </tr>
+                {% if vt_result.tags %}
+                    <tr>
+                        <td>Теги:</td>
+                        <td>{{ vt_result.tags }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Расширение:</td>
+                    <td>{{ vt_result.type_extension }}</td>
+                </tr>
+                <tr>
+                    <td>Описание типа:</td>
+                    <td>{{ vt_result.type_description }}</td>
+                </tr>
+                <tr>
+                    <td>Теги типа:</td>
+                    <td>{{ vt_result.type_tags }}</td>
+                </tr>
+                <tr>
+                    <td>Magic:</td>
+                    <td>{{ vt_result.magic }}</td>
+                </tr>
+                <tr>
+                    <td>Все имена файла:</td>
+                    <td>{{ vt_result.names }}</td>
+                </tr>
+                <tr>
+                    <td>Имя файла:</td>
+                    <td>{{ vt_result.meaningful_name }}</td>
+                </tr>
+                <tr>
+                    <td>Размер файла:</td>
+                    <td>{{ vt_result.size }}</td>
+                </tr>
+                <tr>
+                    <td>MD5:</td>
+                    <td>{{ vt_result.md5 }}</td>
+                </tr>
+                <tr>
+                    <td>SHA1:</td>
+                    <td>{{ vt_result.sha1 }}</td>
+                </tr>
+                <tr>
+                    <td>SHA256:</td>
+                    <td class="td_value">{{ vt_result.sha256 }}</td>
+                </tr>
+                <tr>
+                    <td>Дата последнего анализа:</td>
+                    <td>{{ vt_result.last_analysis_date }}</td>
+                </tr>
+                <tr>
+                    <td>Дата изменения информации о файле:</td>
+                    <td>{{ vt_result.last_modification_date }}</td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+{% else %}
+    <table class="table table-hover table-bordered table-dark">
+        <tbody>
+            <tr>
+                <td>Данные отсутствуют</td>
+                <td>Данные отсутствуют</td>
+            </tr>
+        </tbody>
+    </table>
+{% endif %}

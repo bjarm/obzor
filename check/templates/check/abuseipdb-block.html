@@ -1,0 +1,64 @@
+{% if abuseipdb_result %}
+    <table class="table table-hover table-borderless table-dark mt-1">
+        <tbody>
+            <tr>
+                <td>Рейтинг AbuseIPDB:</td>
+                <td>{{ abuseipdb_result.abuse_confidence_score }}%</td>
+            </tr>
+            {% if abuseipdb_result.top_categories %}
+                <tr>
+                    <td>Категории жалоб:</td>
+                    <td>{{ abuseipdb_result.top_categories }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>Количество жалоб:</td>
+                <td>{{ abuseipdb_result.total_reports }}</td>
+            </tr>
+            {% if abuseipdb_result.last_reported_at %}
+                <tr>
+                    <td>Дата последней жалобы:</td>
+                    <td>{{ abuseipdb_result.last_reported_at }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>Присутствует в белом списке AbuseIPDB:</td>
+                <td>{{ abuseipdb_result.is_whitelisted|yesno:"Да,Нет" }}</td>
+            </tr>
+            {% if abuseipdb_result.usage_type %}
+                <tr>
+                    <td>Тип использования:</td>
+                    <td>{{ abuseipdb_result.usage_type }}</td>
+                </tr>
+            {% endif %}
+            {% if abuseipdb_result.hostnames %}
+                <tr>
+                    <td>Названия хоста:</td>
+                    <td>{{ abuseipdb_result.hostnames }}</td>
+                </tr>
+            {% endif %}
+            {% if abuseipdb_result.domain %}
+                <tr>
+                    <td>Домен:</td>
+                    <td>{{ abuseipdb_result.domain }}</td>
+                </tr>
+            {% endif %}
+            {% if abuseipdb_result.is_tor %}
+                <tr>
+                    <td>Принадлежит сети TOR:</td>
+                    <td>{{ abuseipdb_result.is_tor }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% if abuseipdb_figure %}{{ abuseipdb_figure|safe }}{% endif %}
+{% else %}
+    <table class="table table-hover table-bordered table-dark mb-0">
+        <tbody>
+            <tr>
+                <td>Данные отсутствуют</td>
+                <td>Данные отсутствуют</td>
+            </tr>
+        </tbody>
+    </table>
+{% endif %}
