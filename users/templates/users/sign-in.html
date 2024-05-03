@@ -12,11 +12,11 @@
                     {% csrf_token %}
                     <div class="form-floating mt-4">
                         {{ form.username }}
-                        <label for="{{ form.username.id_for_lable }}" class="text-bg-dark">Логин</label>
+                        <label for="{{ form.username.id_for_label }}" class="text-bg-dark">Логин</label>
                     </div>
                     <div class="form-floating">
                         {{ form.password }}
-                        <label for="{{ form.username.id_for_lable }}" class="text-bg-dark">Пароль</label>
+                        <label for="{{ form.username.id_for_label }}" class="text-bg-dark">Пароль</label>
                     </div>
                     <button class="w-100 btn btn-main btn-lg mt-4" type="submit">Войти</button>
                     <div class="mt-2">
