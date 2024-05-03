@@ -1,5 +1,7 @@
 from django.contrib import admin
-from users.models import User
+from check.models import Indicator, IndicatorType, Check
 
-# Register your models here.
-admin.site.register(User)
+
+admin.site.register(Indicator)
+admin.site.register(IndicatorType)
+admin.site.register(Check)

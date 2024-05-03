@@ -1,0 +1,30 @@
+[
+    {
+        "model": "check.indicatortype",
+        "pk": 1,
+        "fields": {
+            "name": "IPv4"
+        }
+    },
+    {
+        "model": "check.indicatortype",
+        "pk": 2,
+        "fields": {
+            "name": "Domain"
+        }
+    },
+    {
+        "model": "check.indicatortype",
+        "pk": 3,
+        "fields": {
+            "name": "Hostname"
+        }
+    },
+    {
+        "model": "check.indicatortype",
+        "pk": 4,
+        "fields": {
+            "name": "Hash"
+        }
+    }
+]
