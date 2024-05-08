@@ -81,3 +81,6 @@ class Check(models.Model):
 
     class Meta:
         ordering = ["-last_modified_timestamp"]
+
+    def __str__(self):
+        return f"{str(self.user)} | {str(self.indicator)} | {str(self.last_modified_timestamp.strftime("%d-%m-%Y %H:%M:%S %Z"))}"
