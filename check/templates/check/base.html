@@ -43,10 +43,14 @@
                              height="32"
                              class="d-inline-block align-text-center">
                     </a>
-                    <input class="form-control text-bg-dark border border-2 border-top-0 border-bottom-0 border-secondary"
-                           type="search"
-                           name="ioc_input"
-                           id="check-content">
+                    {% if form.value %}
+                        {{ form.value }}
+                    {% else %}
+                        <input class="form-control text-bg-dark border border-2 border-top-0 border-bottom-0 border-secondary"
+                               type="search"
+                               name="ioc_input"
+                               id="check-content">
+                    {% endif %}
                     <button class="btn btn-dark border border-2 border-start-0 border-top-0 border-bottom-0 border-secondary rounded-0"
                             type="submit">Поиск</button>
                     {% if user.is_authenticated %}

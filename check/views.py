@@ -15,9 +15,10 @@ from check.models import Indicator
 from check.forms import IndicatorForm
 
 
-class IndexView(TemplateView):
+class IndexView(FormView):
     """View for index page"""
 
+    form_class = IndicatorForm
     template_name = "check/index.html"
 
 
