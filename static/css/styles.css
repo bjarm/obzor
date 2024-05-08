@@ -152,3 +152,11 @@ tr.selected td {
     --bs-btn-disabled-bg: #212529;
     --bs-btn-disabled-border-color: #212529;
 }
+
+.list-group-item-dark {
+    --bs-list-group-bg: rgb(33, 37, 41);
+}
+
+.list-group-link {
+    text-decoration: none;
+}

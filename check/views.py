@@ -11,7 +11,7 @@ from check.services.abuseipdb_module import AbuseIPDBHandler
 from check.services.virustotal_module import VirusTotalHandler
 from check.services.alienvault_otx_module import AlienVaultOTXHandler
 from check.services.analysis_module import AnalysisModule
-from check.models import Indicator
+from check.models import Indicator, Check
 from check.forms import IndicatorForm
 
 
@@ -21,6 +21,12 @@ class IndexView(FormView):
     form_class = IndicatorForm
     template_name = "check/index.html"
 
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data()
+        if self.request.user.is_authenticated:
+            context["checks"] = Check.objects.filter(user=self.request.user)
+        return context
+
 
 class SearchView(FormView):
     form_class = IndicatorForm
@@ -29,14 +35,41 @@ class SearchView(FormView):
         form = self.form_class
         return render(request, "check/check-block.html", {"form": form})
 
-    def post(self, request):
-        form = self.form_class(request.POST)
+
+class CheckView(FormView):
+    form_class = IndicatorForm
+
+    def get(self, request):
+        form = self.form_class(request.GET)
         if form.is_valid():
             existing_indicator = Indicator.objects.filter(
                 value=form.cleaned_data.get("value")
             ).first()
 
             if existing_indicator:
+                if self.request.user.is_authenticated:
+                    check = Check.objects.filter(
+                        user=request.user, indicator=existing_indicator
+                    )
+                    if not check.exists():
+                        check = Check.objects.create(
+                            user=request.user, indicator=existing_indicator
+                        )
+                        check.save()
+                    else:
+                        check.first().save()
+
+                    checks = Check.objects.filter(user=request.user)
+
+                    return render(
+                        request,
+                        "check/result.html",
+                        {
+                            "form": form,
+                            "indicator": existing_indicator,
+                            "checks": checks,
+                        },
+                    )
                 return render(
                     request,
                     "check/result.html",
@@ -44,6 +77,23 @@ class SearchView(FormView):
                 )
             else:
                 indicator = form.save()
+                if self.request.user.is_authenticated:
+                    check = Check.objects.filter(user=request.user, indicator=indicator)
+                    if not check.exists():
+                        check = Check.objects.create(
+                            user=request.user, indicator=indicator
+                        )
+                        check.save()
+                    else:
+                        check.first().save()
+
+                    checks = Check.objects.filter(user=request.user)
+
+                    return render(
+                        request,
+                        "check/result.html",
+                        {"form": form, "indicator": indicator, "checks": checks},
+                    )
                 return render(
                     request,
                     "check/result.html",

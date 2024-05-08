@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 
 from users.forms import UserSignInForm, UserSignUpForm, UserProfileForm
 from users.models import User
+from check.models import Check
 
 
 class LoginForbiddenMixin(UserPassesTestMixin):
@@ -49,6 +50,11 @@ class UserProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super(UserProfileView, self).get_context_data()
+        context["checks"] = Check.objects.filter(user=self.request.user)
+        return context
 
 
 class UserSignOutView(LoginRequiredMixin, LogoutView):

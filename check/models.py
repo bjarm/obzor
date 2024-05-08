@@ -77,4 +77,7 @@ class Indicator(models.Model):
 class Check(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     indicator = models.ForeignKey(Indicator, on_delete=models.CASCADE)
-    created_timestamp = models.DateTimeField(auto_now_add=True)
+    last_modified_timestamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-last_modified_timestamp"]
