@@ -16,24 +16,12 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="card text-bg-dark mb-3">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs">
-                            <li class="nav-item">
-                                <button class="nav-link active">Сводка</button>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="card-header">Сводка</div>
                     <div class="card-body p-0">{% include "check/table-placeholder.html" with service_content="analysis-content" %}</div>
                 </div>
                 {% if indicator.type.name == 'IPv4' %}
                     <div class="card text-bg-dark mb-3">
-                        <div class="card-header">
-                            <ul class="nav nav-tabs card-header-tabs">
-                                <li class="nav-item">
-                                    <button class="nav-link active">Информация об IP из RDAP</button>
-                                </li>
-                            </ul>
-                        </div>
+                        <div class="card-header">Информация об IP из RDAP</div>
                         <div class="card-body p-0" id="rdap-content">{% include "check/table-placeholder.html" %}</div>
                     </div>
                 {% endif %}
