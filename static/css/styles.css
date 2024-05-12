@@ -160,3 +160,10 @@ tr.selected td {
 .list-group-link {
     text-decoration: none;
 }
+
+.list-group {
+    max-height: 500px;
+    margin-bottom: 10px;
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
+}

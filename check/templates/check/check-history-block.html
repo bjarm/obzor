@@ -1,0 +1,11 @@
+<ul class="list-group list-group-flush mt-2" id="check-history-content">
+    {% for check in checks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-dark">
+            <a class="list-group-link link-light link-opacity-50 link-opacity-75-hover"
+               href="{% url 'check' %}?value={{ check.indicator.value }}">{{ check.indicator|truncatechars:24 }}</a>
+            <span class="badge text-bg-secondary rounded-pill">{{ check.last_modified_timestamp }}</span>
+        </li>
+    {% empty %}
+        <p class="mt-1">История запросов очищена</p>
+    {% endfor %}
+</ul>

@@ -93,14 +93,23 @@
                     </ul>
                     {% if checks %}
                         <div class="mt-5">
-                            <p>История запросов</p>
-                            <ul class="list-group list-group-flush">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto align-self-center">
+                                    <h6 class="align-self-center">История запросов</h6>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-main btn-sm" type="button" id="clear-checks-button">Очистить историю</button>
+                                </div>
+                            </div>
+                            <ul class="list-group list-group-flush mt-2" id="check-history-content">
                                 {% for check in checks %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-dark">
                                         <a class="list-group-link link-light link-opacity-50 link-opacity-75-hover"
                                            href="{% url 'check' %}?value={{ check.indicator.value }}">{{ check.indicator|truncatechars:24 }}</a>
                                         <span class="badge text-bg-secondary rounded-pill">{{ check.last_modified_timestamp }}</span>
                                     </li>
+                                {% empty %}
+                                    <p class="mt-3">История запросов очищена</p>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -149,6 +158,21 @@
                     }
                 });
                 showFormErrorToast();
+            });
+        </script>
+        <script>
+            document.getElementById('clear-checks-button').addEventListener('click', function() {
+                $.ajax({
+                    url: '{% url "check:clear-check-history" %}',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#check-history-content').replaceWith(data);
+                        $('#clear-checks-button').prop('disabled', true)
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
             });
         </script>
         {% block scripts %}

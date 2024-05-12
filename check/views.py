@@ -271,3 +271,12 @@ def get_analysis_data(request):
     cache.set(f"{indicator.value}_A", result, timeout=3600)
 
     return render(request, "check/analysis-block.html", result)
+
+
+@require_GET
+def clear_check_history(request):
+    checks = Check.objects.filter(user=request.user)
+    if checks.exists():
+        checks.delete()
+
+    return render(request, "check/check-history-block.html")
