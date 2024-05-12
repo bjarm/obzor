@@ -23,7 +23,7 @@ from check.views import SearchView, IndexView, CheckView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", IndexView.as_view(), name="index"),
-    path("check/", CheckView.as_view(), name="check"),
+    path("check", CheckView.as_view(), name="check"),
     path("search/", SearchView.as_view(), name="search"),
     path("", include("users.urls", namespace="users")),
     path("check/", include("check.urls", namespace="check")),
