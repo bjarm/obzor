@@ -12,6 +12,7 @@ class AbuseIPDBData:
 
     def __init__(
         self,
+        indicator,
         is_whitelisted,
         abuse_confidence_score,
         usage_type,
@@ -22,6 +23,7 @@ class AbuseIPDBData:
         reports,
         last_reported_at,
     ) -> None:
+        self._indicator = indicator
         self._is_whitelisted = is_whitelisted
         self._abuse_confidence_score = abuse_confidence_score
         self._usage_type = usage_type
@@ -36,6 +38,7 @@ class AbuseIPDBData:
     def from_json(cls, json_data: dict) -> AbuseIPDBData:
         """Creates a class instance based on json data received via API"""
         return cls(
+            indicator=json_data.get("ipAddress"),
             is_whitelisted=json_data.get("isWhitelisted", False),
             abuse_confidence_score=json_data.get("abuseConfidenceScore"),
             usage_type=json_data.get("usageType"),
@@ -156,6 +159,11 @@ class AbuseIPDBData:
             reports_data.get("count").append(count)
 
         return reports_data
+
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://www.abuseipdb.com/check/{self._indicator}"
 
 
 class AbuseIPDBHandler(ServiceHandler):

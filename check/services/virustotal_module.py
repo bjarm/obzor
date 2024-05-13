@@ -11,6 +11,7 @@ class VirusTotalData(ABC):
 
     def __init__(
         self,
+        indicator,
         last_analysis_date,
         engine_malicious,
         engine_count,
@@ -18,6 +19,7 @@ class VirusTotalData(ABC):
         tags,
         last_modification_date,
     ) -> None:
+        self._indicator = indicator
         self._last_analysis_date = last_analysis_date
         self._engine_malicious = engine_malicious
         self._engine_count = engine_count
@@ -60,6 +62,11 @@ class VirusTotalData(ABC):
         """Contains the date when any of the indicator information was last updated"""
         return self._last_modification_date
 
+    @property
+    @abstractmethod
+    def source_link(self) -> str:
+        """Contains link to VirusTotal where the source information is located"""
+
 
 class VirusTotalIPData(VirusTotalData):
     """Class for storing IP data received from VirusTotal"""
@@ -71,6 +78,7 @@ class VirusTotalIPData(VirusTotalData):
         attributes = json_data.get("attributes")
 
         return cls(
+            indicator=json_data.get("id"),
             last_analysis_date=format_timestamp(
                 attributes.get("last_analysis_date", "")
             ),
@@ -83,12 +91,18 @@ class VirusTotalIPData(VirusTotalData):
             ),
         )
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://www.virustotal.com/gui/ip-address/{self._indicator}"
+
 
 class VirusTotalDomainData(VirusTotalData):
     """Class for storing domain/hostname data received from VirusTotal"""
 
     def __init__(
         self,
+        indicator,
         last_analysis_date,
         engine_malicious,
         engine_count,
@@ -98,6 +112,7 @@ class VirusTotalDomainData(VirusTotalData):
         registrar,
     ) -> None:
         super().__init__(
+            indicator,
             last_analysis_date,
             engine_malicious,
             engine_count,
@@ -114,6 +129,7 @@ class VirusTotalDomainData(VirusTotalData):
         attributes = json_data.get("attributes")
 
         return cls(
+            indicator=json_data.get("id"),
             last_analysis_date=attributes.get("last_analysis_date", ""),
             engine_malicious=attributes.get("last_analysis_stats").get("malicious"),
             engine_count=sum(attributes.get("last_analysis_stats").values()),
@@ -130,12 +146,18 @@ class VirusTotalDomainData(VirusTotalData):
         """Contains the company that registered the domain"""
         return self._registrar
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://www.virustotal.com/gui/domain/{self._indicator}"
+
 
 class VirusTotalFileData(VirusTotalData):
     """Class for storing file data received from VirusTotal"""
 
     def __init__(
         self,
+        indicator,
         last_analysis_date,
         engine_malicious,
         engine_count,
@@ -155,6 +177,7 @@ class VirusTotalFileData(VirusTotalData):
         kaspersky,
     ) -> None:
         super().__init__(
+            indicator,
             last_analysis_date,
             engine_malicious,
             engine_count,
@@ -181,6 +204,7 @@ class VirusTotalFileData(VirusTotalData):
         attributes = json_data.get("attributes")
 
         return cls(
+            indicator=json_data.get("id"),
             last_analysis_date=attributes.get("last_analysis_date", ""),
             engine_malicious=attributes.get("last_analysis_stats").get("malicious"),
             engine_count=sum(attributes.get("last_analysis_stats").values()),
@@ -256,6 +280,11 @@ class VirusTotalFileData(VirusTotalData):
     def kaspersky(self) -> dict:
         """Contains the result of Kaspersky AV analysis"""
         return self._kasperky
+
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://www.virustotal.com/gui/file/{self._indicator}"
 
 
 class VirusTotalHandler(ServiceHandler):

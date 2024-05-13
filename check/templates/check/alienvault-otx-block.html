@@ -59,6 +59,13 @@
                         </td>
                     </tr>
                 {% endif %}
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ alienvault_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
+                </tr>
             </tbody>
         </table>
     {% elif indicator_type == 'Hostname' %}
@@ -121,6 +128,13 @@
                         </td>
                     </tr>
                 {% endif %}
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ alienvault_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
+                </tr>
             </tbody>
         </table>
     {% elif indicator_type == 'Domain' %}
@@ -183,6 +197,13 @@
                         </td>
                     </tr>
                 {% endif %}
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ alienvault_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
+                </tr>
             </tbody>
         </table>
     {% elif indicator_type == 'Hash' %}
@@ -254,6 +275,13 @@
                         <td>{{ alienvault_result.metaextract_ips }}</td>
                     </tr>
                 {% endif %}
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ alienvault_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
+                </tr>
             </tbody>
         </table>
     {% endif %}

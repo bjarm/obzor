@@ -49,6 +49,13 @@
                     <td>{{ abuseipdb_result.is_tor }}</td>
                 </tr>
             {% endif %}
+            <tr>
+                <td colspan="2">
+                    <a href="{{ abuseipdb_result.source_link }}"
+                       class="link-light link-offset-3"
+                       target="_blank">Перейти в источник</a>
+                </td>
+            </tr>
         </tbody>
     </table>
     {% if abuseipdb_figure %}{{ abuseipdb_figure|safe }}{% endif %}

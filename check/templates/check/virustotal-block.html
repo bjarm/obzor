@@ -20,6 +20,13 @@
                     <td>Дата последнего анализа:</td>
                     <td>{{ vt_result.last_analysis_date }}</td>
                 </tr>
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ vt_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
+                </tr>
             </tbody>
         </table>
     {% elif indicator_type == 'Domain' or indicator_type == 'Hostname' %}
@@ -50,6 +57,13 @@
                 <tr>
                     <td>Дата изменения информации о домене:</td>
                     <td>{{ vt_result.last_modification_date }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ vt_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -117,6 +131,13 @@
                 <tr>
                     <td>Дата изменения информации о файле:</td>
                     <td>{{ vt_result.last_modification_date }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ vt_result.source_link }}"
+                           class="link-light link-offset-3"
+                           target="_blank">Перейти в источник</a>
+                    </td>
                 </tr>
             </tbody>
         </table>

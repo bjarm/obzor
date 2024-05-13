@@ -9,7 +9,10 @@ from check.services.service_module import ServiceHandler
 class AlienVaultOTXData(ABC):
     """Class for storing data received from AlienVault OTX"""
 
-    def __init__(self, tags, adversaries, malware_families, industries) -> None:
+    def __init__(
+        self, indicator, tags, adversaries, malware_families, industries
+    ) -> None:
+        self._indicator = indicator
         self._tags = tags
         self._adversaries = adversaries
         self._malware_families = malware_families
@@ -40,12 +43,17 @@ class AlienVaultOTXData(ABC):
         """Contains list of industries associated with the indicator"""
         return self._industries
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+
 
 class AlienVaultOTXIPData(AlienVaultOTXData):
     """Class for storing IP data received from AlienVault OTX"""
 
     def __init__(
         self,
+        indicator,
         tags,
         adversaries,
         malware_families,
@@ -53,7 +61,7 @@ class AlienVaultOTXIPData(AlienVaultOTXData):
         passive_dns,
         passive_dns_count,
     ) -> None:
-        super().__init__(tags, adversaries, malware_families, industries)
+        super().__init__(indicator, tags, adversaries, malware_families, industries)
         self._passive_dns = passive_dns
         self._passive_dns_count = passive_dns_count
 
@@ -109,6 +117,7 @@ class AlienVaultOTXIPData(AlienVaultOTXData):
             record.update({"last": format_iso_date(record.get("last"))})
 
         return cls(
+            indicator=general_json_data.get("indicator"),
             tags=tags,
             adversaries=adversaries,
             malware_families=malware_families,
@@ -127,12 +136,18 @@ class AlienVaultOTXIPData(AlienVaultOTXData):
         """Contains passive dns record count"""
         return self._passive_dns_count
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://otx.alienvault.com/indicator/domain/{self._indicator}"
+
 
 class AlienVaultOTXHostnameData(AlienVaultOTXData):
     """Class for storing hostname data received from AlienVault OTX"""
 
     def __init__(
         self,
+        indicator,
         tags,
         adversaries,
         malware_families,
@@ -140,7 +155,7 @@ class AlienVaultOTXHostnameData(AlienVaultOTXData):
         passive_dns,
         passive_dns_count,
     ) -> None:
-        super().__init__(tags, adversaries, malware_families, industries)
+        super().__init__(indicator, tags, adversaries, malware_families, industries)
         self._passive_dns = passive_dns
         self._passive_dns_count = passive_dns_count
 
@@ -196,6 +211,7 @@ class AlienVaultOTXHostnameData(AlienVaultOTXData):
             record.update({"last": format_iso_date(record.get("last"))})
 
         return cls(
+            indicator=general_json_data.get("indicator"),
             tags=tags,
             adversaries=adversaries,
             malware_families=malware_families,
@@ -214,12 +230,18 @@ class AlienVaultOTXHostnameData(AlienVaultOTXData):
         """Contains passive dns record count"""
         return self._passive_dns_count
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://otx.alienvault.com/indicator/hostname/{self._indicator}"
+
 
 class AlienVaultOTXDomainData(AlienVaultOTXData):
     """Class for storing domain data received from AlienVault OTX"""
 
     def __init__(
         self,
+        indicator,
         tags,
         adversaries,
         malware_families,
@@ -227,7 +249,7 @@ class AlienVaultOTXDomainData(AlienVaultOTXData):
         passive_dns,
         passive_dns_count,
     ) -> None:
-        super().__init__(tags, adversaries, malware_families, industries)
+        super().__init__(indicator, tags, adversaries, malware_families, industries)
         self._passive_dns = passive_dns
         self._passive_dns_count = passive_dns_count
 
@@ -283,6 +305,7 @@ class AlienVaultOTXDomainData(AlienVaultOTXData):
             record.update({"last": format_iso_date(record.get("last"))})
 
         return cls(
+            indicator=general_json_data.get("indicator"),
             tags=tags,
             adversaries=adversaries,
             malware_families=malware_families,
@@ -301,12 +324,18 @@ class AlienVaultOTXDomainData(AlienVaultOTXData):
         """Contains passive dns record count"""
         return self._passive_dns_count
 
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://otx.alienvault.com/indicator/domain/{self._indicator}"
+
 
 class AlienVaultOTXFileData(AlienVaultOTXData):
     """Class for storing file data received from AlienVault OTX"""
 
     def __init__(
         self,
+        indicator,
         tags,
         adversaries,
         malware_families,
@@ -319,7 +348,7 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
         metaextract_urls,
         metaextract_ips,
     ) -> None:
-        super().__init__(tags, adversaries, malware_families, industries)
+        super().__init__(indicator, tags, adversaries, malware_families, industries)
         self._md5 = md5
         self._sha1 = sha1
         self._sha256 = sha256
@@ -384,6 +413,7 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
         )
 
         return cls(
+            indicator=general_json_data.get("indicator"),
             tags=tags,
             adversaries=adversaries,
             malware_families=malware_families,
@@ -431,6 +461,11 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
     def metaextract_ips(self) -> list[str]:
         """Contains the list of IPs related to the file (information received from metaextract)"""
         return self._metaextract_urls
+
+    @property
+    def source_link(self) -> str:
+        """Contains link to AbuseIPDB where the source information is located"""
+        return f"https://otx.alienvault.com/indicator/file/{self._indicator}"
 
     def __bool__(self):
         return not self.is_empty()
