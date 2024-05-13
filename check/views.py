@@ -157,7 +157,8 @@ def get_virustotal_data(request):
 
     result = {"vt_result": data, "indicator_type": indicator.type.name}
 
-    cache.set(f"{indicator.value}_VT", result, timeout=3600)
+    if data:
+        cache.set(f"{indicator.value}_VT", result, timeout=3600)
 
     return render(request, "check/virustotal-block.html", result)
 
@@ -185,7 +186,8 @@ def get_alienvault_otx_data(request):
 
     result = {"alienvault_result": data, "indicator_type": indicator.type.name}
 
-    cache.set(f"{indicator.value}_AVOTX", result, timeout=3600)
+    if data:
+        cache.set(f"{indicator.value}_AVOTX", result, timeout=3600)
 
     return render(request, "check/alienvault-otx-block.html", result)
 
@@ -232,7 +234,8 @@ def get_abuseipdb_data(request):
         ),
     }
 
-    cache.set(f"{indicator.value}_AIPDB", result, timeout=3600)
+    if data:
+        cache.set(f"{indicator.value}_AIPDB", result, timeout=3600)
 
     return render(request, "check/abuseipdb-block.html", result)
 
@@ -250,7 +253,8 @@ def get_rdap_data(request):
     data = rdap_handler.get_ip_data(indicator.value)
     result = {"rdap_result": data}
 
-    cache.set(f"{indicator.value}_RDAP", result, timeout=3600)
+    if data:
+        cache.set(f"{indicator.value}_RDAP", result, timeout=3600)
 
     return render(request, "check/rdap-block.html", result)
 
