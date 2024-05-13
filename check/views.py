@@ -6,10 +6,10 @@ from django.views.generic.edit import FormView
 from django.views.decorators.http import require_GET
 from plotly import express as px
 import pandas as pd
-from check.api_handlers import rdap_ip_handle
 from check.services.abuseipdb_module import AbuseIPDBHandler
 from check.services.virustotal_module import VirusTotalHandler
 from check.services.alienvault_otx_module import AlienVaultOTXHandler
+from check.services.rdap_module import RDAPHandler
 from check.services.analysis_module import AnalysisModule
 from check.models import Indicator, Check, Keyword
 from check.forms import IndicatorForm, KeywordForm
@@ -246,7 +246,8 @@ def get_rdap_data(request):
     if cached_result:
         return render(request, "check/rdap-block.html", cached_result)
 
-    data = rdap_ip_handle(indicator.value)
+    rdap_handler = RDAPHandler()
+    data = rdap_handler.get_ip_data(indicator.value)
     result = {"rdap_result": data}
 
     cache.set(f"{indicator.value}_RDAP", result, timeout=3600)

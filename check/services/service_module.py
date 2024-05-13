@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 class ServiceHandler(ABC):
     """Parent class for handlers of interaction with external services"""
 
-    def __init__(self, key) -> None:
+    def __init__(self, key=None) -> None:
         self._key = key
 
     @staticmethod
