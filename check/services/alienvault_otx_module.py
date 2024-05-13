@@ -486,7 +486,7 @@ class AlienVaultOTXHandler(ServiceHandler):
         except requests.exceptions.ReadTimeout:
             return None
 
-        data = AlienVaultOTXIPData.from_json(
+        data = AlienVaultOTXHostnameData.from_json(
             general_response.json(), pdns_response.json()
         )
 
@@ -512,7 +512,7 @@ class AlienVaultOTXHandler(ServiceHandler):
         except requests.exceptions.ReadTimeout:
             return None
 
-        data = AlienVaultOTXIPData.from_json(
+        data = AlienVaultOTXDomainData.from_json(
             general_response.json(), pdns_response.json()
         )
 
