@@ -104,6 +104,7 @@ class AnalysisModule:
                                 keyword_entry.append(
                                     {"keyword": keyword, "service": "AV_OTX"}
                                 )
+                                break
 
                 if abuseipdb_result:
                     if keyword in abuseipdb_result.domain or keyword in " ".join(
@@ -175,6 +176,7 @@ class AnalysisModule:
                                 keyword_entry.append(
                                     {"keyword": keyword, "service": "AV_OTX"}
                                 )
+                                break
 
         result = {
             "total_score": total_score,
@@ -240,6 +242,7 @@ class AnalysisModule:
                                 keyword_entry.append(
                                     {"keyword": keyword, "service": "AV_OTX"}
                                 )
+                                break
 
         result = {
             "total_score": total_score,
