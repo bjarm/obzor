@@ -161,9 +161,8 @@ tr.selected td {
     text-decoration: none;
 }
 
-.list-group {
+.check-list-group {
     max-height: 500px;
     margin-bottom: 10px;
-    overflow: scroll;
-    -webkit-overflow-scrolling: touch;
+    overflow: auto;
 }
