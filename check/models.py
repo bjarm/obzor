@@ -84,3 +84,8 @@ class Check(models.Model):
 
     def __str__(self):
         return f"{str(self.user)} | {str(self.indicator)} | {str(self.last_modified_timestamp.strftime("%d-%m-%Y %H:%M:%S %Z"))}"
+
+
+class Keyword(models.Model):
+    value = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

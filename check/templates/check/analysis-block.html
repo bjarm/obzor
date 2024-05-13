@@ -33,6 +33,21 @@
                     </td>
                 </tr>
             {% endif %}
+            {% if analysis_result.keywords_result %}
+                {% for keyword_entry in analysis_result.keywords_result %}
+                    <tr>
+                        <td>
+                            {% if keyword_entry.service == 'VT' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>VirusTotal</b>.
+                            {% elif keyword_entry.service == 'AV_OTX' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>AlienVault OTX</b>.
+                            {% elif keyword_entry.service == 'AIPDB' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>AbuseIPDB</b>.
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 {% elif indicator_type == 'Domain' or indicator_type == 'Hostname' %}
@@ -49,6 +64,19 @@
                     </td>
                 {% endif %}
             </tr>
+            {% if analysis_result.keywords_result %}
+                {% for keyword_entry in analysis_result.keywords_result %}
+                    <tr>
+                        <td>
+                            {% if keyword_entry.service == 'VT' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>VirusTotal</b>.
+                            {% elif keyword_entry.service == 'AV_OTX' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>AlienVault OTX</b>.
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 {% elif indicator_type == 'Hash' %}
@@ -71,6 +99,19 @@
                         Средствами АВПО Kaspersky данный файл определяется, как <b>{{ analysis_result.kaspersky_result }}</b>
                     </td>
                 </tr>
+            {% endif %}
+            {% if analysis_result.keywords_result %}
+                {% for keyword_entry in analysis_result.keywords_result %}
+                    <tr>
+                        <td>
+                            {% if keyword_entry.service == 'VT' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>VirusTotal</b>.
+                            {% elif keyword_entry.service == 'AV_OTX' %}
+                                Ключевое слово <b>{{ keyword_entry.keyword }}</b> обнаружено в данных от источника <b>AlienVault OTX</b>.
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
             {% endif %}
         </tbody>
     </table>

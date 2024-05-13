@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.core.cache import cache
 from django.conf import settings
-from django.views.generic.base import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.views.decorators.http import require_GET
 from plotly import express as px
@@ -11,8 +11,8 @@ from check.services.abuseipdb_module import AbuseIPDBHandler
 from check.services.virustotal_module import VirusTotalHandler
 from check.services.alienvault_otx_module import AlienVaultOTXHandler
 from check.services.analysis_module import AnalysisModule
-from check.models import Indicator, Check
-from check.forms import IndicatorForm
+from check.models import Indicator, Check, Keyword
+from check.forms import IndicatorForm, KeywordForm
 
 
 class IndexView(FormView):
@@ -100,6 +100,38 @@ class CheckView(FormView):
                     {"form": form, "indicator": indicator},
                 )
         return render(request, "check/index.html", {"form": form})
+
+
+class EditKeywordsView(LoginRequiredMixin, FormView):
+    form_class = KeywordForm
+
+    def get(self, request):
+        checks = Check.objects.filter(user=self.request.user)
+
+        current_keywords = Keyword.objects.filter(user=self.request.user)
+        if current_keywords.exists():
+            keyword_list = []
+            for keyword in current_keywords:
+                keyword_list.append(keyword.value)
+            form = KeywordForm(initial={"keywords": ", ".join(keyword_list)})
+        else:
+            form = self.form_class
+
+        return render(request, "check/keywords.html", {"form": form, "checks": checks})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        checks = Check.objects.filter(user=self.request.user)
+        if form.is_valid():
+            Keyword.objects.filter(user=self.request.user).delete()
+            if form.cleaned_data["keywords"]:
+                input_keywords = form.cleaned_data["keywords"].split(",")
+                for keyword in input_keywords:
+                    Keyword.objects.create(
+                        user=self.request.user, value=keyword.replace(" ", "")
+                    )
+
+        return render(request, "check/keywords.html", {"form": form, "checks": checks})
 
 
 @require_GET
@@ -226,10 +258,6 @@ def get_rdap_data(request):
 def get_analysis_data(request):
     indicator_value = request.GET.get("indicator")
     indicator = Indicator.objects.filter(value=indicator_value).first()
-    cached_result = cache.get(f"{indicator.value}_A")
-
-    if cached_result:
-        return render(request, "check/analysis-block.html", cached_result)
 
     match indicator.type.name:
         case "IPv4":
@@ -240,6 +268,11 @@ def get_analysis_data(request):
                 vt_result=vt_result_cached.get("vt_result"),
                 alienvault_otx_result=alienvault_result_cached.get("alienvault_result"),
                 abuseipdb_result=abuseipdb_result_cached.get("abuseipdb_result"),
+                keywords=(
+                    keywords_to_list(Keyword.objects.filter(user=request.user))
+                    if request.user.is_authenticated
+                    else None
+                ),
             )
 
         case "Domain":
@@ -248,6 +281,11 @@ def get_analysis_data(request):
             data = AnalysisModule.analyze_domain(
                 vt_result=vt_result_cached.get("vt_result"),
                 alienvault_otx_result=alienvault_result_cached.get("alienvault_result"),
+                keywords=(
+                    keywords_to_list(Keyword.objects.filter(user=request.user))
+                    if request.user.is_authenticated
+                    else None
+                ),
             )
 
         case "Hostname":
@@ -256,6 +294,11 @@ def get_analysis_data(request):
             data = AnalysisModule.analyze_hostname(
                 vt_result=vt_result_cached.get("vt_result"),
                 alienvault_otx_result=alienvault_result_cached.get("alienvault_result"),
+                keywords=(
+                    keywords_to_list(Keyword.objects.filter(user=request.user))
+                    if request.user.is_authenticated
+                    else None
+                ),
             )
 
         case "Hash":
@@ -264,11 +307,14 @@ def get_analysis_data(request):
             data = AnalysisModule.analyze_file(
                 vt_result=vt_result_cached.get("vt_result"),
                 alienvault_otx_result=alienvault_result_cached.get("alienvault_result"),
+                keywords=(
+                    keywords_to_list(Keyword.objects.filter(user=request.user))
+                    if request.user.is_authenticated
+                    else None
+                ),
             )
 
     result = {"analysis_result": data, "indicator_type": indicator.type.name}
-
-    cache.set(f"{indicator.value}_A", result, timeout=3600)
 
     return render(request, "check/analysis-block.html", result)
 
@@ -280,3 +326,10 @@ def clear_check_history(request):
         checks.delete()
 
     return render(request, "check/check-history-block.html")
+
+
+def keywords_to_list(keywords):
+    keyword_list = []
+    for keyword in keywords:
+        keyword_list.append(keyword.value)
+    return keyword_list

@@ -21,7 +21,6 @@ class IndicatorForm(ModelForm):
 
     def clean_value(self):
         value = self.cleaned_data["value"]
-        # Здесь вызываем вашу функцию typify для определения типа
         type = IndicatorType.typify(value)
         if type is None:
             raise forms.ValidationError("Не удалось определить тип индикатора.")
@@ -33,3 +32,12 @@ class IndicatorForm(ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class KeywordForm(forms.Form):
+    keywords = forms.CharField(
+        widget=forms.Textarea(
+            attrs={"class": "form-control text-bg-dark", "placeholder": ""}
+        ),
+        required=False,
+    )

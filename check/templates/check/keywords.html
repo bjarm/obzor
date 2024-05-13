@@ -1,0 +1,67 @@
+{% extends "check/base.html" %}
+{% load static %}
+{% block title %}
+    OBZOR - Ключи
+{% endblock title %}
+{% block css %}
+    <link rel="stylesheet"
+          type="text/css"
+          href="{% static 'css/users_styles.css' %}">
+{% endblock css %}
+{% block content %}
+    <div class="container-fluid text-white text-center">
+        <header class="mt-5">
+            <div class="row">
+                <h1 class="display-1">OBZOR</h1>
+            </div>
+        </header>
+        <main class="container">
+            <div class="row g-5 justify-content-md-center">
+                <div class="col-3"></div>
+                <div class="col-6">
+                    <div class="card text-bg-dark mt-5">
+                        <h5 class="card-header">Ключевые слова</h5>
+                        <div class="card-body">
+                            <form class="needs-validation" action="{% url 'keywords' %}" method="post">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col">
+                                        <label for="{{ form.keywords.id_for_label }}" class="form-label">
+                                            Введите ключевые слова используя <b>запятую</b> в качестве разделителя
+                                        </label>
+                                        {{ form.keywords }}
+                                        <div class="invalid-feedback">Некорректный ввод</div>
+                                    </div>
+                                </div>
+                                <hr class="my-4">
+                                <div class="row g-3">
+                                    <div class="col">
+                                        <button class="btn btn-main btn-lg" type="submit">Сохранить изменения</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    {% if form.errors or messages %}
+                        {% if form.errors %}
+                            {% if form.errors.keywords %}
+                                {% for error in form.errors.keywords %}
+                                    <div class="alert alert-warning alert-dismissible fade show mt-5"
+                                         role="alert">
+                                        {{ error }}
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock content %}

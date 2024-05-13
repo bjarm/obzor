@@ -18,7 +18,8 @@
     border-top-right-radius: 0;
 }
 
-input {
+input,
+textarea {
     border-color: rgb(108 117 125) !important;
 }
 
