@@ -442,7 +442,7 @@ class AlienVaultOTXFileData(AlienVaultOTXData):
 class AlienVaultOTXHandler(ServiceHandler):
     """Handler for interactions with AlienVault OTX"""
 
-    def get_ip_data(self, address) -> AlienVaultOTXIPData:
+    def get_ip_data(self, address) -> AlienVaultOTXIPData | None:
         """Get IP data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -453,18 +453,22 @@ class AlienVaultOTXHandler(ServiceHandler):
             f"https://otx.alienvault.com/api/v1/indicators/IPv4/{address}/passive_dns/"
         )
 
-        with requests.Session() as session:
-            general_response = session.get(url=general_url, headers=headers)
-            pdns_response = session.get(url=pdns_url, headers=headers)
+        try:
+            with requests.Session() as session:
+                general_response = session.get(
+                    url=general_url, headers=headers, timeout=5
+                )
+                pdns_response = session.get(url=pdns_url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = AlienVaultOTXIPData.from_json(
             general_response.json(), pdns_response.json()
         )
-        print(data)
 
         return data
 
-    def get_hostname_data(self, hostname) -> AlienVaultOTXHostnameData:
+    def get_hostname_data(self, hostname) -> AlienVaultOTXHostnameData | None:
         """Get hostname data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -473,9 +477,14 @@ class AlienVaultOTXHandler(ServiceHandler):
         )
         pdns_url = f"https://otx.alienvault.com/api/v1/indicators/hostname/{hostname}/passive_dns/"
 
-        with requests.Session() as session:
-            general_response = session.get(url=general_url, headers=headers)
-            pdns_response = session.get(url=pdns_url, headers=headers)
+        try:
+            with requests.Session() as session:
+                general_response = session.get(
+                    url=general_url, headers=headers, timeout=5
+                )
+                pdns_response = session.get(url=pdns_url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = AlienVaultOTXIPData.from_json(
             general_response.json(), pdns_response.json()
@@ -483,7 +492,7 @@ class AlienVaultOTXHandler(ServiceHandler):
 
         return data
 
-    def get_domain_data(self, domain) -> AlienVaultOTXDomainData:
+    def get_domain_data(self, domain) -> AlienVaultOTXDomainData | None:
         """Get domain data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -494,9 +503,14 @@ class AlienVaultOTXHandler(ServiceHandler):
             f"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/passive_dns/"
         )
 
-        with requests.Session() as session:
-            general_response = session.get(url=general_url, headers=headers)
-            pdns_response = session.get(url=pdns_url, headers=headers)
+        try:
+            with requests.Session() as session:
+                general_response = session.get(
+                    url=general_url, headers=headers, timeout=5
+                )
+                pdns_response = session.get(url=pdns_url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = AlienVaultOTXIPData.from_json(
             general_response.json(), pdns_response.json()
@@ -504,7 +518,7 @@ class AlienVaultOTXHandler(ServiceHandler):
 
         return data
 
-    def get_file_data(self, file) -> AlienVaultOTXFileData:
+    def get_file_data(self, file) -> AlienVaultOTXFileData | None:
         """Get file data for indicator from AlienVault OTX"""
 
         headers = {"accept": "application/json", "x-otx-api-key": self._key}
@@ -515,9 +529,16 @@ class AlienVaultOTXHandler(ServiceHandler):
             f"https://otx.alienvault.com/api/v1/indicators/file/{file}/analysis/"
         )
 
-        with requests.Session() as session:
-            general_response = session.get(url=general_url, headers=headers)
-            analysis_response = session.get(url=analysis_url, headers=headers)
+        try:
+            with requests.Session() as session:
+                general_response = session.get(
+                    url=general_url, headers=headers, timeout=5
+                )
+                analysis_response = session.get(
+                    url=analysis_url, headers=headers, timeout=5
+                )
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = AlienVaultOTXFileData.from_json(
             general_response.json(), analysis_response.json()

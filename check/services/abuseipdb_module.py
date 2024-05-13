@@ -161,7 +161,7 @@ class AbuseIPDBData:
 class AbuseIPDBHandler(ServiceHandler):
     """Handler for interactions with AbuseIPDB"""
 
-    def get_ip_data(self, address) -> AbuseIPDBData:
+    def get_ip_data(self, address) -> AbuseIPDBData | None:
         """Get data for indicator from AbuseIPDB"""
 
         headers = {"accept": "application/json", "key": self._key}
@@ -172,7 +172,12 @@ class AbuseIPDBHandler(ServiceHandler):
         }
         url = "https://api.abuseipdb.com/api/v2/check"
 
-        response = requests.get(url=url, headers=headers, params=querystring)
+        try:
+            response = requests.get(
+                url=url, headers=headers, params=querystring, timeout=5
+            )
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = AbuseIPDBData.from_json(response.json().get("data"))
 

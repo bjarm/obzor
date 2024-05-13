@@ -261,37 +261,46 @@ class VirusTotalFileData(VirusTotalData):
 class VirusTotalHandler(ServiceHandler):
     """Handler for interactions with VirusTotal"""
 
-    def get_ip_data(self, address) -> VirusTotalIPData:
+    def get_ip_data(self, address) -> VirusTotalIPData | None:
         """Get IP data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
         url = f"https://www.virustotal.com/api/v3/ip_addresses/{address}"
 
-        response = requests.get(url=url, headers=headers)
+        try:
+            response = requests.get(url=url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = VirusTotalIPData.from_json(response.json().get("data"))
 
         return data
 
-    def get_domain_data(self, domain) -> VirusTotalDomainData:
+    def get_domain_data(self, domain) -> VirusTotalDomainData | None:
         """Get domain/hostname data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
         url = f"https://www.virustotal.com/api/v3/domains/{domain}"
 
-        response = requests.get(url=url, headers=headers)
+        try:
+            response = requests.get(url=url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = VirusTotalDomainData.from_json(response.json().get("data"))
 
         return data
 
-    def get_file_data(self, file) -> VirusTotalFileData:
+    def get_file_data(self, file) -> VirusTotalFileData | None:
         """Get file data for indicator from VirusTotal"""
 
         headers = {"accept": "application/json", "x-apikey": self._key}
         url = f"https://www.virustotal.com/api/v3/files/{file}"
 
-        response = requests.get(url=url, headers=headers)
+        try:
+            response = requests.get(url=url, headers=headers, timeout=5)
+        except requests.exceptions.ReadTimeout:
+            return None
 
         data = VirusTotalFileData.from_json(response.json().get("data"))
 
