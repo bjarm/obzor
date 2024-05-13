@@ -102,7 +102,7 @@ class AnalysisModule:
                         for record in alienvault_otx_result.passive_dns:
                             if keyword in record.get("hostname"):
                                 keyword_entry.append(
-                                    {"keyword": keyword, "servic    e": "AV_OTX"}
+                                    {"keyword": keyword, "service": "AV_OTX"}
                                 )
 
                 if abuseipdb_result:
